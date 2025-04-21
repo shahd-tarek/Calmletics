@@ -1,0 +1,438 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sports_mind/models/login_model.dart';
+import 'package:sports_mind/models/signup_model.dart';
+
+class Api {
+  static const String baseUrl =
+      "https://calmletics-production.up.railway.app/api";
+
+  Future<SignUpResponse> signUp(String name, String email, String password,
+      String passwordConfirmation, String userRole) async {
+    debugPrint("Signing up as: $userRole");
+    String signUpUrl = userRole == "Coach"
+        ? "https://calmletics-production.up.railway.app/api/coach/sign"
+        : "$baseUrl/player/sign";
+
+    try {
+      final response = await http.post(
+        Uri.parse(signUpUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "name": name,
+          "email": email,
+          "password": password,
+          "password_confirmation": passwordConfirmation,
+        }),
+      );
+      print("Response Status: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final jsonResponse = jsonDecode(response.body);
+        final token = jsonResponse['token'];
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("user_token", token);
+
+        return SignUpResponse.fromJson(jsonResponse);
+      } else {
+        return SignUpResponse(
+          message: "Error: ${response.statusCode} - ${response.reasonPhrase}",
+          token: '',
+        );
+      }
+    } catch (e) {
+      return SignUpResponse(
+        message: "Failed to connect to the server.",
+        token: '',
+      );
+    }
+  }
+
+  Future<LoginResponse> loginUser(
+      String email, String password, String userRole) async {
+    String loginUrl = userRole == "Coach"
+        ? "https://calmletics-production.up.railway.app/api/coach/login"
+        : "https://calmletics-production.up.railway.app/api/player/login";
+        
+
+    final response = await http.post(
+      Uri.parse(loginUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+    print("Status Code: ${response.statusCode}");
+    print("Response Body: ${response.body}");
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final jsonResponse = jsonDecode(response.body);
+      final token = jsonResponse['token'];
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString("user_token", token);
+
+      return LoginResponse.fromJson(jsonResponse);
+    } else {
+      throw Exception('Failed to log in. Status code: ${response.statusCode}');
+    }
+  }
+
+  Future<Map<String, dynamic>?> fetchUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/player/userInfo'),
+      headers: {"Authorization": "Bearer $token"},
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/player/getScore'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print("Failed to fetch score: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching score: $e");
+      return null;
+    }
+  }
+
+  Future<bool> saveScore(int score) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/player/getScore'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: json.encode({"score": score}),
+      );
+
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("Error saving score: $e");
+      return false;
+    }
+  }
+
+  Future<bool> updateUserProfile(String name, String email, String flag) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/editprofile'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: json.encode({"name": name, "email": email, "flag": flag}),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  Future<bool> changePassword(
+      String oldPassword, String newPassword, String confirmPassword) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/updatepassword'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: json.encode({
+        "old_password": oldPassword,
+        "password": newPassword,
+        "password_confirmation": confirmPassword,
+      }),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  Future<bool> saveSelectedAvatar(String avatarUrl) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/player/image'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'image': avatarUrl}),
+    );
+
+    return response.statusCode == 200;
+  }
+
+  Future<Map<String, dynamic>?> getUserAnswers() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/player/getanswers'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic jsonResponse = json.decode(response.body);
+
+        if (jsonResponse is Map<String, dynamic>) {
+          return jsonResponse;
+        } else if (jsonResponse is List) {
+          return {
+            "answers": jsonResponse,
+          };
+        } else {
+          print("Unexpected JSON format: $jsonResponse");
+          return null;
+        }
+      } else {
+        print("Failed to fetch answers: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching answers: $e");
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getStoredAnswers() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedAnswers = prefs.getString("user_answers");
+
+    if (storedAnswers != null) {
+      return jsonDecode(storedAnswers);
+    } else {
+      print("No stored answers found.");
+      return null;
+    }
+  }
+
+  Future<bool> saveCard(
+      String name, String number, String date, String cvv) async {
+    const String url = "$baseUrl/coach/card/store";
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    if (token == null) {
+      print("User token not found");
+      return false;
+    }
+
+    final Map<String, String> headers = {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    final Map<String, dynamic> body = {
+      "name": name,
+      "number": number,
+      "date": date,
+      "cvv": cvv,
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: headers,
+        body: jsonEncode(body),
+      );
+
+      print("Response Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print("Error saving card: $e");
+      return false;
+    }
+  }
+
+// cluster
+  Future<Map<String, dynamic>?> sendAnswersToAI(
+      Map<String, dynamic> answers) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://10.0.2.2:5000/predict"),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode(answers),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        print("Failed to send answers to AI API: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("Error sending answers to AI API: $e");
+      return null;
+    }
+  }
+//cluster num
+  Future<bool> sendClusterNumber(int clusterNumber) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/player/cluster'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({"cluster": clusterNumber}),
+      );
+
+      print("📡 Sending cluster number: $clusterNumber");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("❌ Error sending cluster number: $e");
+      return false;
+    }
+  }
+
+  
+// join community
+  Future<bool> joinFreeCommunity() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/player/join'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      print("📡 Sending request to get community status...");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        print("✅ Successfully retrieved community status!");
+        return true;
+      } else {
+        print("❌ Failed to get community status: ${response.statusCode}");
+        return false;
+      }
+    } catch (e) {
+      print("❌ Error fetching community status: $e");
+      return false;
+    }
+  }
+// flag
+  Future<bool> sendFlag(String flagCode) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/player/flag'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({"flag": flagCode}),
+      );
+
+      print("📡 Sending flag: $flagCode");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("❌ Error sending flag: $e");
+      return false;
+    }
+  }
+  //show player
+  Future<dynamic> getCommunityData() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://calmletics.up.railway.app/api/player/community'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        var data = json.decode(response.body);
+
+        if (data is List) {
+          print("Response is a List: $data");
+          return data;
+        } else if (data is Map<String, dynamic>) {
+          print("Response is a Map: $data");
+          return data;
+        } else {
+          print("❌ Unexpected response format");
+          return null;
+        }
+      } else {
+        print("❌ Failed to fetch community data: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("❌ Error fetching community data: $e");
+      return null;
+    }
+  }
+}

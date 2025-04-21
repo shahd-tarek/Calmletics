@@ -1,0 +1,2 @@
+D:/tasks/sports_mind/android/app/.cxx/Debug/3d573x1t/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/tasks/sports_mind/android/app/.cxx/Debug/3d573x1t/armeabi-v7a/CMakeFiles/rebuild_cache.dir
