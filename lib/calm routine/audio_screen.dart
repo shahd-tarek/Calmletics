@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:just_audio/just_audio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sports_mind/constant.dart';
 import 'package:sports_mind/views/main_screen.dart';
-import 'package:sports_mind/widgets/custom_button.dart';
 
 class AudioPlayerScreen extends StatefulWidget {
-  const AudioPlayerScreen({super.key});
+  final int pageIndex;
+  final int totalPages;
+
+  const AudioPlayerScreen({
+    super.key,
+    required this.pageIndex,
+    required this.totalPages,
+  });
 
   @override
   State<AudioPlayerScreen> createState() => _AudioPlayerScreenState();
@@ -20,6 +27,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   bool isPlaying = false;
   bool isLoading = true;
   String? audioUrl;
+  bool isAudioFinished = false;
 
   @override
   void initState() {
@@ -29,22 +37,46 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   }
 
   Future<void> _fetchAudioUrl() async {
-    final response = await http
-        .get(Uri.parse("https://your-api.com/audio")); 
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    print("Token: $token");
+
+    final response = await http.post(
+      Uri.parse(
+          "https://calmletics-production.up.railway.app/api/file/upload/rec3"),
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+
+    print("Response status: ${response.statusCode}");
+    print("Response body: ${response.body}");
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       setState(() {
-        audioUrl = data['audio_url']; 
+        audioUrl = data['rec3'];
         isLoading = false;
       });
-      _loadAudio();
+
+      print("Audio URL: $audioUrl");
+
+      if (audioUrl == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load audio.')),
+        );
+      } else {
+        _loadAudio();
+      }
     } else {
-      // error handling
-      print("Failed to load audio URL");
       setState(() {
         isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error loading audio URL.')),
+      );
     }
   }
 
@@ -68,6 +100,9 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
     _player.playerStateStream.listen((state) {
       setState(() {
         isPlaying = state.playing;
+        if (state.processingState == ProcessingState.completed) {
+          isAudioFinished = true;
+        }
       });
     });
   }
@@ -81,36 +116,54 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgcolor,
-      body: SafeArea(
-        child: isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Container(
-                margin: const EdgeInsets.only(top: 35),
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(32),
-                    topRight: Radius.circular(32),
-                  ),
-                ),
+      backgroundColor: const Color.fromARGB(255, 243, 240, 240),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: const Color.fromARGB(255, 243, 240, 240),
+        elevation: 0,
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: bgcolor,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    // Top bar
+                    // Progress bar
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.arrow_back),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: LinearProgressIndicator(
-                            value: 1.0,
-                            backgroundColor: Colors.grey[300],
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: SizedBox(
+                            height: 20,
+                            width: 250,
+                            child: LinearProgressIndicator(
+                              value: (widget.pageIndex + 1) / widget.totalPages,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  kPrimaryColor),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${widget.pageIndex + 1}/${widget.totalPages}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                             color: kPrimaryColor,
                           ),
                         ),
-                        const SizedBox(width: 10),
-                        const Text("4/4"),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -129,7 +182,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                       borderRadius: BorderRadius.circular(10),
                       child: Image.asset(
                         'assets/images/audio.png',
-                        height: 400,
+                        height: 380,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -140,7 +193,7 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
 
                     // Progress
                     Row(
@@ -182,25 +235,50 @@ class _AudioPlayerScreenState extends State<AudioPlayerScreen> {
                         }
                       },
                     ),
-                    const SizedBox(height: 10),
-
-                    // Done Button
-                    SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: CustomButton(
-                          text: "Done",
-                          ontap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const MainScreen()),
-                            );
-                          },
-                        ))
                   ],
                 ),
               ),
+            ),
+          ),
+
+          // Done Button
+        
+Container(
+  padding: const EdgeInsets.all(16),
+  color: bgcolor,
+  child: Center(
+    child: SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isAudioFinished ? kPrimaryColor : Colors.grey, 
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        onPressed: isAudioFinished
+            ? () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const MainScreen()),
+                );
+              }
+            : null, 
+        child: const Text(
+          "Done",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ),
+  ),
+),
+        ],
       ),
     );
   }

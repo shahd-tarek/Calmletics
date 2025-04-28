@@ -5,12 +5,12 @@ Widget buildCard({
   required String description,
   required String image,
    required Widget navigateTo,
-  BuildContext? context,
+ required BuildContext context,
 }) {
   return GestureDetector(
     onTap: () {
       Navigator.push(
-        context!,
+        context,
         MaterialPageRoute(
           builder: (context) => navigateTo,
         ),

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:sports_mind/calm%20routine/audio_screen.dart';
 import 'package:sports_mind/constant.dart';
+import 'package:sports_mind/calm%20routine/quick_t3.dart';
 
 class BoxBreathingScreen extends StatefulWidget {
-  const BoxBreathingScreen({super.key});
+  final int pageIndex;
+  final int totalPages;
+  const BoxBreathingScreen({
+    super.key,
+    required this.pageIndex,
+    required this.totalPages,
+  });
 
   @override
   State<BoxBreathingScreen> createState() => _BoxBreathingScreenState();
@@ -45,14 +51,16 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
 
   void _updateDotAnimation() {
     final animations = [
-      Tween<Offset>(begin: const Offset(0, 0), end: const Offset(maxOffset, 0)), // top
+      Tween<Offset>(
+          begin: const Offset(0, 0), end: const Offset(maxOffset, 0)), // top
       Tween<Offset>(
           begin: const Offset(maxOffset, 0),
           end: const Offset(maxOffset, maxOffset)), // right
       Tween<Offset>(
           begin: const Offset(maxOffset, maxOffset),
           end: const Offset(0, maxOffset)), // bottom
-      Tween<Offset>(begin: const Offset(0, maxOffset), end: const Offset(0, 0)), // left
+      Tween<Offset>(
+          begin: const Offset(0, maxOffset), end: const Offset(0, 0)), // left
     ];
     _dotAnimation = animations[currentPhase].animate(CurvedAnimation(
       parent: _dotController,
@@ -108,7 +116,7 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
               width: boxSize,
               height: boxSize,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: const Color(0xffFFFCF9),
                 borderRadius: BorderRadius.circular(16),
               ),
               alignment: Alignment.center,
@@ -122,7 +130,10 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
                   ),
                   const SizedBox(height: 4),
                   const Text("4s",
-                      style: TextStyle(fontSize: 20, color: Colors.grey,)),
+                      style: TextStyle(
+                        fontSize: 20,
+                        color: Colors.grey,
+                      )),
                 ],
               ),
             ),
@@ -147,91 +158,120 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgcolor,
-      body: SafeArea(
-        child: Container(
-           margin: const EdgeInsets.only(top: 35), 
-        padding: const EdgeInsets.only(top: 12),
-          decoration: const BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(32),
-        topRight: Radius.circular(32),
+      backgroundColor: const Color.fromARGB(255, 243, 240, 240),
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: const Color.fromARGB(255, 243, 240, 240),
+        elevation: 0,
       ),
-    ),
-          child: Column(
-            children: [
-              // Top Bar
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.arrow_back),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: LinearProgressIndicator(
-                        value: 0.5,
-                        backgroundColor: Colors.grey[300],
-                        color: kPrimaryColor,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Text("2/4"),
-                  ],
-                ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color:Colors.white,
+                borderRadius: BorderRadius.circular(30),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                "Take a deep breath and relax",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-          
-              // Breathing Box
-              Container(
-                height: 500,
-                margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: kPrimaryColor,
-                  borderRadius: BorderRadius.circular(24),
-                ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   children: [
-                    const Row(
+                    // Progress bar
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.refresh, color: Colors.white),
-                        SizedBox(width: 6),
-                        Text("3 Times", style: TextStyle(color: Colors.white)),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: SizedBox(
+                            height: 20,
+                            width: 250,
+                            child: LinearProgressIndicator(
+                              value: (widget.pageIndex + 1) / widget.totalPages,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  kPrimaryColor),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          '${widget.pageIndex + 1}/${widget.totalPages}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: kPrimaryColor,
+                          ),
+                        ),
                       ],
                     ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Take a deep breath and relax",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Breathing Box
+                    Container(
+                      height: 500,
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: kPrimaryColor,
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      child: Column(
+                        children: [
+                          const Row(
+                            children: [
+                              Icon(Icons.refresh, color: Colors.white),
+                              SizedBox(width: 6),
+                              Text("3 Times",
+                                  style: TextStyle(color: Colors.white)),
+                            ],
+                          ),
+                          const Spacer(),
+                          Center(child: _buildDotAnimationBox()),
+                          const Spacer(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: phases
+                                .map((p) => Column(
+                                      children: [
+                                        Text(
+                                          p,
+                                          style: const TextStyle(
+                                              color: Colors.white),
+                                        ),
+                                        const Text("4s",
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                      ],
+                                    ))
+                                .toList(),
+                          )
+                        ],
+                      ),
+                    ),
                     const Spacer(),
-                    Center(child: _buildDotAnimationBox()),
                     const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: phases
-                          .map((p) => Column(
-                                children: [
-                                  Text(
-                                    p,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  const Text("4s",
-                                      style: TextStyle(color: Colors.white)),
-                                ],
-                              ))
-                          .toList(),
-                    )
                   ],
                 ),
               ),
-            const Spacer(),
-              const Spacer(),
-              Container(
-                margin: const EdgeInsets.all(24),
-                width: 350,
-                height: 50,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            color: bgcolor,
+            child: Center(
+              child: SizedBox(
+                width: double.infinity,
+                height: 52,
                 child: ElevatedButton(
                   onPressed: (isStarted && loopCount < maxLoops)
                       ? null
@@ -240,7 +280,10 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const AudioPlayerScreen()),
+                                  builder: (context) => QuickTaskThree(
+                                        pageIndex: widget.pageIndex + 1,
+                                        totalPages: widget.totalPages,
+                                      )),
                             );
                           } else {
                             _startBreathing();
@@ -263,9 +306,9 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/calm%20routine/quick_t1.dart';
 import 'package:sports_mind/constant.dart';
 import 'package:sports_mind/http/api.dart';
 import 'package:sports_mind/views/user_profile.dart';
@@ -181,11 +182,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 16),
                     buildCard(
+                      context: context,
                         title: 'Calm Routine Before match',
                         description:
                             'A quick and simple routine to calm your mind before the game.',
                         image: 'assets/images/card2.png',
-                        navigateTo: const SurveyScoreScreen()),
+                        navigateTo:  const QuickTaskOne(pageIndex: 0,totalPages: 4,)),
                   ],
                 ),
               ),
