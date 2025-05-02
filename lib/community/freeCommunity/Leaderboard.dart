@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sports_mind/community/freeCommunity/list.dart';
-import 'package:sports_mind/widgets/leaderboard_item.dart';
+import 'package:sports_mind/coach/widget/leaderboard_item.dart';
 import 'package:sports_mind/widgets/leaderboard_tab_bar.dart';
-import 'package:sports_mind/widgets/top_three_users.dart';
-
+import 'package:sports_mind/coach/widget/top_three.dart';
 
 class Leaderboard extends StatefulWidget {
   const Leaderboard({super.key});
@@ -13,7 +12,7 @@ class Leaderboard extends StatefulWidget {
 }
 
 class _LeaderboardState extends State<Leaderboard> {
-  String selectedTab = 'Today'; 
+  String selectedTab = 'Today';
   final List<Map<String, dynamic>> topUsers = [
     {'name': 'Jane', 'points': 958, 'imagePath': 'assets/images/Coach 1.jpg'},
     {'name': 'John', 'points': 1200, 'imagePath': 'assets/images/Coach 1.jpg'},

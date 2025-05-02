@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sports_mind/community/freeCommunity/Leaderboard.dart';
 import 'package:sports_mind/community/freeCommunity/chat.dart';
 import 'package:sports_mind/http/api.dart';
+import 'package:sports_mind/plan/plan_page.dart';
 import 'package:sports_mind/widgets/option_card.dart';
 
 class freeCommunity extends StatefulWidget {
@@ -14,14 +15,13 @@ class freeCommunity extends StatefulWidget {
 class freeCommunityState extends State<freeCommunity> {
   double progressValue = 0.25;
   String? profileImage;
-  List<dynamic> communityMembers = [];
   final Api api = Api();
 
   @override
   void initState() {
     super.initState();
     _loadUserProfile();
-    fetchCommunityData(); // Fetch community images
+
   }
 
   Future<void> _loadUserProfile() async {
@@ -30,20 +30,6 @@ class freeCommunityState extends State<freeCommunity> {
       setState(() {
         profileImage = userData['image'];
       });
-    }
-  }
-
-  Future<void> fetchCommunityData() async {
-    var data = await api.getCommunityData();
-
-    if (data is List) {
-      setState(() {
-        communityMembers = data;
-      });
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to load community members.")),
-      );
     }
   }
 
@@ -141,7 +127,12 @@ class freeCommunityState extends State<freeCommunity> {
               const SizedBox(height: 40),
 
               // Options
-              buildOptionCard("Start daily workout", () {}),
+              buildOptionCard("Start daily workout", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PlanPage()),
+                  );
+              }),
               const SizedBox(height: 20),
 
               const Text("Your Safe Space to Talk and Learn",
@@ -162,39 +153,6 @@ class freeCommunityState extends State<freeCommunity> {
                 },
               ),
 
-              const SizedBox(height: 20),
-
-              const Text("Here’s Your Support Circle",
-                  style: TextStyle(
-                      color: Color.fromRGBO(78, 78, 78, 1),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16)),
-
-              const SizedBox(height: 20),
-
-              // Display community images in a scrollable list
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: communityMembers.map((member) {
-                    String imageUrl = member['image'] ?? ''; // Get image path
-
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: CircleAvatar(
-                        radius: 25,
-                        backgroundImage: imageUrl.startsWith('assets/')
-                            ? AssetImage(imageUrl) as ImageProvider
-                            : NetworkImage(imageUrl),
-                        onBackgroundImageError: (_, __) => setState(() {
-                          imageUrl =
-                              ''; // Handle error (set a default image if needed)
-                        }),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
             ],
           ),
         ),

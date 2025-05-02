@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sports_mind/views/user_type.dart';
 
-
-
 void main() {
   runApp(const MyApp());
 }

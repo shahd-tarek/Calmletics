@@ -28,19 +28,6 @@ class _CommunityState extends State<Community> {
     setState(() {
       isLoading = true;
     });
-
-    var data = await api.getCommunityData();
-
-    setState(() {
-      isLoading = false;
-      communityData = data is Map<String, dynamic> ? data : null;
-    });
-
-    if (data == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to load community data.")),
-      );
-    }
   }
 
   /// Handles joining the free community
@@ -136,7 +123,8 @@ class _CommunityState extends State<Community> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const freeCommunity()),
+                                    builder: (context) =>
+                                        const freeCommunity()),
                               );
                             },
                           ),
@@ -156,7 +144,8 @@ class _CommunityState extends State<Community> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => const JoinCommunity()),
+                                    builder: (context) =>
+                                        const JoinCommunity()),
                               );
                             },
                           ),

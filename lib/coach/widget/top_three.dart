@@ -3,89 +3,74 @@ import 'package:flutter/material.dart';
 class TopThreeUsers extends StatelessWidget {
   final List<Map<String, dynamic>> topUsers;
 
-  const TopThreeUsers({
-    super.key,
-    required this.topUsers,
-  });
+  const TopThreeUsers({super.key, required this.topUsers});
 
   @override
   Widget build(BuildContext context) {
+    // Sort top 3 by points descending
+    final sortedUsers = [...topUsers]..sort((a, b) => b['points'].compareTo(a['points']));
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildUserColumn(topUsers[0], '2', 'assets/images/two.png'),
-        _buildUserColumn(topUsers[1], '1', 'assets/images/one.png'),
-        _buildUserColumn(topUsers[2], '3', 'assets/images/three.png'),
-      ],
-    );
-  }
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: List.generate(3, (index) {
+        final user = sortedUsers[index];
+        final height = getBarHeight(index);
+        final isFirst = index == 0;
 
-  Widget _buildUserColumn(
-      Map<String, dynamic> user, String rank, String image) {
-    double topPadding = 0; // Default padding
-
-    // Adjust padding based on rank
-    if (rank == '2') {
-      topPadding = 20; // Small distance below 1
-    } else if (rank == '3') {
-      topPadding = 50; // Big distance below 1
-    }
-
-    return Column(
-      children: [
-        SizedBox(height: topPadding), // Add padding based on rank
-        CircleAvatar(
-          radius: 25,
-          backgroundColor: Colors.grey,
-          backgroundImage: AssetImage(user['imagePath']),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          user['name'],
-          style: const TextStyle(
-            fontSize: 16,
-            color: Color.fromRGBO(0, 0, 0, 1),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Container(
-          width: 55,
-          height: 27,
-          decoration: BoxDecoration(
-            color: const Color.fromRGBO(233, 239, 235, 1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Center(
-            child: Text(
-              user['points'].toString(),
-              style: const TextStyle(
-                fontSize: 16,
-                color: Color.fromRGBO(106, 149, 122, 1),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-        Stack(
-          alignment: Alignment.center,
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Image.asset(
-              image,
-              width: rank == '1' ? 108 : 127,
-              height: rank == '1' ? 137 : 102,
+            if (isFirst)
+              const Icon(Icons.emoji_events, color: Colors.amber, size: 24), // التاج الذهبي
+
+            CircleAvatar(
+              radius: 50,
+              backgroundImage: AssetImage(user['imagePath']),
             ),
+            const SizedBox(height: 6),
             Text(
-              rank,
-              style: TextStyle(
-                fontSize: rank == '1' ? 128 : 96,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+              user['name'],
+              style: const TextStyle(fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              user['points'].toString(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: 65,
+              height: height,
+              decoration: BoxDecoration(
+                color: const Color(0xFF6A957A),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  (index + 1).toString(),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold,fontSize: 70),
+                ),
               ),
             ),
           ],
-        ),
-      ],
+        );
+      }),
     );
+  }
+
+  double getBarHeight(int index) {
+    switch (index) {
+      case 0:
+        return 150;
+      case 1:
+        return 120;
+      case 2:
+        return 100;
+      default:
+        return 100;
+    }
   }
 }

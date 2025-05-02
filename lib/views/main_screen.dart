@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sports_mind/chatbot/start-chatbot.dart';
 import 'package:sports_mind/community/community.dart';
 import 'package:sports_mind/constant.dart';
-import 'package:sports_mind/coach/payment.dart';
+import 'package:sports_mind/plan/plan_page.dart';
 import 'package:sports_mind/progress.dart';
 import 'package:sports_mind/views/home_screen.dart';
 
@@ -18,7 +18,7 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const PaymentPage(),
+    const PlanPage(),
     const ProgressPage(),
     const Community(),
   ];

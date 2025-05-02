@@ -7,7 +7,7 @@ import 'package:sports_mind/coach/widget/bottom_navigation_bar.dart';
 import 'package:sports_mind/coach/widgetsOfHome/community_card.dart';
 import 'package:sports_mind/coach/widgetsOfHome/player_progress_card.dart';
 import 'package:sports_mind/coach/widgetsOfHome/stats_card.dart';
-
+import 'package:sports_mind/http/api.dart';
 
 class CoachHome extends StatefulWidget {
   const CoachHome({super.key});
@@ -18,6 +18,11 @@ class CoachHome extends StatefulWidget {
 
 class _CoachHomeState extends State<CoachHome> {
   int _selectedIndex = 0; // Track selected tab
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -59,8 +64,31 @@ class _CoachHomeState extends State<CoachHome> {
 }
 
 // Extracted Home Content to Keep it Clean
-class HomeContent extends StatelessWidget {
+class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
+
+  @override
+  State<HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<HomeContent> {
+  String? profileImage;
+
+  final Api api = Api();
+  Future<void> loadUserProfile() async {
+    final userData = await api.fetchUserData();
+    if (userData != null && mounted) {
+      setState(() {
+        profileImage = userData['image'];
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserProfile();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +110,15 @@ class HomeContent extends StatelessWidget {
                       width: 1,
                     ),
                   ),
-                  child: Image.asset('assets/images/Coach 3.png'),
+                  child: profileImage == null || profileImage!.isEmpty
+                      ? const CircularProgressIndicator()
+                      : CircleAvatar(
+                          radius: 32,
+                          backgroundImage: AssetImage(profileImage!),
+                          onBackgroundImageError: (_, __) => setState(() {
+                            profileImage = null;
+                          }),
+                        ),
                 ),
                 const Spacer(),
                 const Icon(Icons.notifications, size: 32, color: Colors.grey),
