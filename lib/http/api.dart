@@ -404,7 +404,31 @@ class Api {
       throw Exception('Failed to load sessions: ${response.statusCode}');
     }
   }
+
+ Future<Map<String, dynamic>> fetchSessionContent(int sessionId) async {
+  String? token = await TokenHelper.getToken();
+
+  if (token == null) {
+    throw Exception("User token not found");
+  }
+
+  final response = await http.get(
+    Uri.parse("https://calmletics-production.up.railway.app/api/player/get-session-content?session_id=$sessionId"),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return jsonDecode(response.body);
+  } else {
+    throw Exception("Failed to load session content: ${response.statusCode}");
+  }
 }
+
+}
+
 
 /*import 'dart:convert';
 import 'package:flutter/material.dart';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sports_mind/constant.dart';
 import 'package:sports_mind/http/api.dart';
 import 'package:sports_mind/models/plan_model.dart';
+import 'package:sports_mind/plan/plan_day_task.dart';
 
 class PlanPage extends StatelessWidget {
   const PlanPage({super.key});
@@ -107,74 +108,92 @@ class PlanPage extends StatelessWidget {
                     final session = sessions[index];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: Container(
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(32),
-                          border: Border.all(
-                            color: Colors.grey.shade300,
-                            width: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PlanDayTask(
+                                sessionId: session.sessionId,
+                                sessionName: session.sessionName,
+                                sessionNumber: session.sessionNumber,
+                                status:"https://calmletics-production.up.railway.app${session.status}", // الصورة
+                               sessionType: session.sessionType,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(32),
+                            border: Border.all(
+                              color: Colors.grey.shade300,
+                              width: 1,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            // Left side: title + icon
-                            Expanded(
-                              child: Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Image.network(
-                                          "https://calmletics-production.up.railway.app${session.status}",
-                                          width: 24,
-                                          height: 24,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  const Icon(Icons.broken_image,
-                                                      size: 24),
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          session.sessionNumber,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
+                          child: Row(
+                            children: [
+                              // Left side: title + icon
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Image.network(
+                                            "https://calmletics-production.up.railway.app${session.status}",
+                                            width: 24,
+                                            height: 24,
+                                            errorBuilder: (context, error,
+                                                    stackTrace) =>
+                                                const Icon(Icons.broken_image,
+                                                    size: 24),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      session.sessionName,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey,
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            session.sessionNumber,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        session.sessionName,
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                       
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ),
-                            // Right side: fixed image
-                            ClipRRect(
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(16),
-                                bottomRight: Radius.circular(16),
+                              // Right side: fixed image
+                              ClipRRect(
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
+                                ),
+                                child: Image.asset(
+                                  'assets/images/img-week1.png',
+                                  width: 100,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                              child: Image.asset(
-                                'assets/images/img-week1.png',
-                                width: 100,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );

@@ -290,3 +290,49 @@ Container(
     return "$minutes:$seconds";
   }
 }
+class AudioPlayerWidget extends StatefulWidget {
+  final String url;
+
+  const AudioPlayerWidget({super.key, required this.url});
+
+  @override
+  _AudioPlayerWidgetState createState() => _AudioPlayerWidgetState();
+}
+
+class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
+  late AudioPlayer _audioPlayer;
+  bool isPlaying = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        isPlaying ? Icons.pause : Icons.play_arrow,
+        size: 32,
+      ),
+      onPressed: () async {
+        if (isPlaying) {
+          await _audioPlayer.pause();
+        } else {
+          await _audioPlayer.setUrl(widget.url);
+          _audioPlayer.play();
+        }
+        setState(() {
+          isPlaying = !isPlaying;
+        });
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+}

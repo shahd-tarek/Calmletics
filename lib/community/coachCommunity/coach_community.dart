@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sports_mind/community/coachCommunity/book-vr.dart';
 import 'package:sports_mind/community/freeCommunity/Leaderboard.dart';
 import 'package:sports_mind/http/api.dart';
 import 'package:sports_mind/widgets/option_card.dart';
@@ -143,10 +142,10 @@ class coachCommunityState extends State<coachCommunity> {
               const SizedBox(height: 20),
               buildOptionCard(
                   "Step Into Virtual Reality for Peak\nPerformance!", () {
-                Navigator.push(
+              /*  Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const BookVRSessionPage()),
-                );
+                );*/
               }),
               const SizedBox(height: 20),
               const Text(" Here’s Your Support Circle",

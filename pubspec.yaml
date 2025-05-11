@@ -42,6 +42,7 @@ dependencies:
   get: ^4.6.6
   table_calendar: ^3.0.9
   just_audio: ^0.9.35
+  video_player: ^2.9.5
   
  
 

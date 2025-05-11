@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sports_mind/ResetPasswordScreens/forgetpass.dart';
-import 'package:sports_mind/coach/coach_avatar.dart';
+import 'package:sports_mind/coach/screens/coach_home.dart';
 import 'package:sports_mind/constant.dart';
 import 'package:sports_mind/http/api.dart';
-import 'package:sports_mind/qustions/start.dart';
+import 'package:sports_mind/views/main_screen.dart';
 import 'package:sports_mind/widgets/custom_button.dart';
 
 class LoginPage extends StatefulWidget {
@@ -86,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Future.delayed(const Duration(), () {
         Widget nextPage =
-            selectedRole == "Coach" ? const CoachAvatar() : const Start();
+            selectedRole == "Coach" ? const CoachHome() : const MainScreen();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => nextPage),
