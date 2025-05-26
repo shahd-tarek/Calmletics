@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sports_mind/helper/token_helper.dart';
@@ -281,6 +281,7 @@ class Api {
     }
   }
 
+// cluster
   Future<Map<String, dynamic>?> sendAnswersToAI(
       Map<String, dynamic> answers) async {
     try {
@@ -304,6 +305,7 @@ class Api {
     }
   }
 
+  //cluster num
   Future<bool> sendClusterNumber(int clusterNumber) async {
     String? token = await TokenHelper.getToken();
 
@@ -325,6 +327,60 @@ class Api {
     } catch (e) {
       print("❌ Error sending cluster number: $e");
       return false;
+    }
+  }
+
+  Future<int?> forwardRecommendationAnswersToLocalAPI() async {
+    String? token = await TokenHelper.getToken();
+
+    try {
+      // Step 1: Get recommendation answers from production API
+      final response = await http.get(
+        Uri.parse('$baseUrl/player/get_recommendation_answers'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final recommendationData = jsonDecode(response.body);
+
+        // Step 2: Send the data to the local recommendation API
+        final postResponse = await http.post(
+          Uri.parse(
+              'http://10.0.2.2:5000/recommend'), // or 'http://10.0.2.2:5000/recommend' for Android emulator
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+          body: jsonEncode({
+            "anxiety_level": recommendationData["anxiety_level"],
+            "Preferred_Content": recommendationData["Preferred_Content"],
+            "Daily_App_Usage": recommendationData["Daily_App_Usage"],
+          }),
+        );
+
+        print("🔁 Forwarded to Local API");
+        print("Status Code: ${postResponse.statusCode}");
+
+        if (postResponse.statusCode == 200) {
+          final responseData = jsonDecode(postResponse.body);
+          final recommendedPlanId = responseData["recommended_plan_id"];
+
+          print("🎯 Recommended Plan ID: $recommendedPlanId");
+          return recommendedPlanId;
+        } else {
+          print("❌ Local API failed: ${postResponse.statusCode}");
+          return null;
+        }
+      } else {
+        print("❌ Failed to get recommendation answers: ${response.statusCode}");
+        return null;
+      }
+    } catch (e) {
+      print("❌ Error in forwarding recommendation answers: $e");
+      return null;
     }
   }
 
@@ -405,30 +461,541 @@ class Api {
     }
   }
 
- Future<Map<String, dynamic>> fetchSessionContent(int sessionId) async {
-  String? token = await TokenHelper.getToken();
+  Future<Map<String, dynamic>> fetchSessionContent(int sessionId) async {
+    String? token = await TokenHelper.getToken();
 
-  if (token == null) {
-    throw Exception("User token not found");
+    if (token == null) {
+      throw Exception("User token not found");
+    }
+
+    final response = await http.get(
+      Uri.parse(
+          "https://calmletics-production.up.railway.app/api/player/get-session-content?session_id=$sessionId"),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to load session content: ${response.statusCode}");
+    }
   }
 
-  final response = await http.get(
-    Uri.parse("https://calmletics-production.up.railway.app/api/player/get-session-content?session_id=$sessionId"),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    },
-  );
+  // plans
+  Future<List<Map<String, dynamic>>> fetchPlans(String level) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
 
-  if (response.statusCode == 200) {
-    return jsonDecode(response.body);
-  } else {
-    throw Exception("Failed to load session content: ${response.statusCode}");
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'https://calmletics-production.up.railway.app/api/coach/plans?level=${level.toLowerCase()}'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      print("📡 Fetching plans for level: $level");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['plans'] is List) {
+          return List<Map<String, dynamic>>.from(data['plans']);
+        } else {
+          print("❌ Unexpected data format for 'plans'");
+          return [];
+        }
+      } else {
+        print("❌ Error: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      print("❌ Error fetching plans: $e");
+      return [];
+    }
+  }
+
+//create community
+  Future<Map<String, dynamic>> createcom(
+      String communityName, String level, String planId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+    try {
+      final response = await http.post(
+        Uri.parse(
+            'https://calmletics-production.up.railway.app/api/coach/compre/create'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          'name': communityName,
+          'level': level,
+          'plan_id': planId,
+        }),
+      );
+
+      print("Response status: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        throw Exception(
+            'Failed to create community. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error: $e');
+      rethrow;
+    }
+  }
+
+//all communities
+  Future<List<Map<String, dynamic>>> fetchCommunities() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final url = Uri.parse(
+        "https://calmletics-production.up.railway.app/api/coach/communtities");
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final communities = json['communities'] as List;
+        return communities.map((e) => e as Map<String, dynamic>).toList();
+      } else {
+        print('Failed to fetch communities: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching communities: $e');
+      return [];
+    }
+  }
+
+//Filter all Communities
+  Future<List<Map<String, dynamic>>> fetchFilterCommunity(String level) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://calmletics-production.up.railway.app/api/coach/communtities?level=${level.toLowerCase()}',
+        ),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      print("📡 Fetching communities for level: $level");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['communities'] is List) {
+          return List<Map<String, dynamic>>.from(data['communities']);
+        } else {
+          print("❌ Unexpected data format for 'communities'");
+          return [];
+        }
+      } else {
+        print("❌ Error: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      print("❌ Error fetching communities: $e");
+      return [];
+    }
+  }
+
+//all players in communities
+  Future<List<Map<String, dynamic>>> fetchPlayers() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+    final url = Uri.parse("$baseUrl/coach/players");
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final players = json['players'] ?? json['data']['players'];
+
+        if (players is List) {
+          return players.map((e) => e as Map<String, dynamic>).toList();
+        } else {
+          if (kDebugMode) {
+            print('Unexpected data format for players');
+          }
+          return [];
+        }
+      } else {
+        if (kDebugMode) {
+          print('Failed to fetch players: ${response.statusCode}');
+        }
+        return [];
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching players: $e');
+      }
+      return [];
+    }
+  }
+
+//Filtered Players in all communities
+  Future<List<Map<String, dynamic>>> fetchFilteredPlayers(String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("user_token");
+    final url = Uri.parse("$baseUrl/coach/players?status=$status");
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        final players = json['players'] ?? json['data']?['players'];
+
+        if (players is List) {
+          return players.cast<Map<String, dynamic>>();
+        } else {
+          if (kDebugMode) print('Unexpected data format for players');
+          return [];
+        }
+      } else {
+        if (kDebugMode) {
+          print('Failed to fetch players: ${response.statusCode}');
+          print('Response body: ${response.body}');
+        }
+        return [];
+      }
+    } catch (e) {
+      if (kDebugMode) print('Error fetching players: $e');
+      return [];
+    }
+  }
+
+//all player number
+  Future<int?> fetchPlayerCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+    final url = Uri.parse("$baseUrl/coach/players-count");
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['player_count'] as int;
+      } else {
+        if (kDebugMode) {
+          print('Failed to fetch player count: ${response.statusCode}');
+        }
+        return null;
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching player count: $e');
+      }
+      return null;
+    }
+  }
+
+//community details
+  static Future<Map<String, dynamic>> comDetails(String communityId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final url = Uri.parse(
+      "https://calmletics-production.up.railway.app/api/coach/community-details?community_id=$communityId",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        final communityName = data['community_name'];
+        final communityCode = data['community_code'];
+        final playersCount = data['players_count'];
+        final communityLevel = data['community_level'];
+        final players =
+            (data['players'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+        final sessions =
+            (data['sessions'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+        return {
+          'community_name': communityName,
+          'community_code': communityCode,
+          'players_count': playersCount,
+          'community_level': communityLevel,
+          'players': players,
+          'sessions': sessions,
+        };
+      } else {
+        print('Failed to fetch community details: ${response.statusCode}');
+        return {};
+      }
+    } catch (e) {
+      print('Error fetching community details: $e');
+      return {};
+    }
+  }
+
+//top player
+  static Future<List<Map<String, dynamic>>> fetchTopplayer(
+      String communityId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final url = Uri.parse(
+      "https://calmletics-production.up.railway.app/api/coach/leaderboard?community_id=$communityId",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        List users = data['users'] ?? [];
+
+        return users
+            .map<Map<String, dynamic>>((user) => {
+                  "name": user["name"],
+                  "image": user["image"],
+                  "flag": user["flag"],
+                  "com_pre_id": user["com_pre_id"],
+                  "user_id": user["user_id"],
+                  "total_score": user["total_score"],
+                  "rank": user["rank"],
+                })
+            .toList();
+      } else {
+        print('Failed to fetch top players: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching top players: $e');
+      return [];
+    }
+  }
+
+//leaderboard
+  static Future<List<Map<String, dynamic>>> fetchLeaderboard(
+      String communityId, String time) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    if (token == null) {
+      print("Token is null");
+      return [];
+    }
+
+    final url = Uri.parse(
+      "https://calmletics-production.up.railway.app/api/coach/leaderboard?time=$time&community_id=$communityId",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        List users = data['users'] ?? [];
+
+        return users
+            .map<Map<String, dynamic>>((user) => {
+                  "name": user["name"],
+                  "image": user["image"],
+                  "flag": user["flag"],
+                  "com_pre_id": user["com_pre_id"],
+                  "user_id": user["user_id"],
+                  "total_score": user["total_score"],
+                  "rank": user["rank"],
+                })
+            .toList();
+      } else {
+        print('Failed to fetch top players: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching top players: $e');
+      return [];
+    }
+  }
+
+//community player
+  static Future<List<Map<String, dynamic>>> fetchCommunityplayer(
+      String communityId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final url = Uri.parse(
+      "https://calmletics-production.up.railway.app/api/coach/community-members-status?community_id=$communityId",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        List players = data['players'] ?? [];
+
+        return players
+            .map<Map<String, dynamic>>((player) => {
+                  "player_id": player["player_id"],
+                  "player_name": player["player_name"],
+                  "community_name": player["community_name"],
+                  "status_message": player["status_message"],
+                  "status_image": player["status_image"],
+                  "image": player["image"],
+                })
+            .toList();
+      } else {
+        print('Failed to fetch players: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching players: $e');
+      return [];
+    }
+  }
+
+// Filter player in community
+  static Future<List<Map<String, dynamic>>> fetchCommunityFilterplayer(
+      String communityId, String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("user_token");
+
+    final url = Uri.parse(
+      "https://calmletics-production.up.railway.app/api/coach/community-members-status"
+      "?community_id=$communityId&status=$status",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      if (token != null) "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        final List players = data['players'] ?? [];
+
+        return players.map<Map<String, dynamic>>((player) {
+          return {
+            "player_id": player["player_id"],
+            "player_name": player["player_name"],
+            "community_name": player["community_name"],
+            "status_message": player["status_message"],
+            "status_image": player["status_image"],
+            "image": player["image"],
+          };
+        }).toList();
+      } else {
+        print('Failed to fetch filtered players: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching filtered players: $e');
+      return [];
+    }
+  }
+
+// delate community
+  static Future<Map<String, dynamic>> delateCommunity(
+      String communityId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final url = Uri.parse("$baseUrl/coach/delete-community");
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    final body = jsonEncode({
+      "community_id": communityId,
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {
+          "success": true,
+          "message": data["message"] ?? "Community deleted successfully",
+        };
+      } else {
+        print('Failed to delete community: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        final errorData = jsonDecode(response.body);
+        return {
+          "success": false,
+          "error": errorData["error"] ??
+              "Failed to delete community. Status code: ${response.statusCode}",
+        };
+      }
+    } catch (e) {
+      print('Error deleting community: $e');
+      return {
+        "success": false,
+        "error": "Exception occurred: $e",
+      };
+    }
   }
 }
-
-}
-
 
 /*import 'dart:convert';
 import 'package:flutter/material.dart';

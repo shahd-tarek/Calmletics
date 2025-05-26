@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sports_mind/constant.dart';
 import 'package:sports_mind/http/api.dart';
+import 'package:sports_mind/qustions/recommend_plan.dart';
 import 'package:sports_mind/qustions/surveyscore.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
@@ -300,12 +301,12 @@ class _AnxietyScreenState extends State<AnxietyScreen> {
             height: 52,
             child: ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const SurveyScoreScreen(),
-                  ),
-                );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SurveyScoreScreen(),
+                    ),
+                  );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromRGBO(255, 255, 255, 1),
@@ -333,6 +334,7 @@ class _AnxietyScreenState extends State<AnxietyScreen> {
             child: ElevatedButton(
               onPressed: () {
                 fetchAndSendCluster();
+                showRecommendationDialog(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color.fromRGBO(106, 149, 122, 1),

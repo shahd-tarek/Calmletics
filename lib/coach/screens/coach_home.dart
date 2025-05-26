@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sports_mind/coach/VR/vr_schedula.dart';
 import 'package:sports_mind/coach/screens/all_community.dart';
+import 'package:sports_mind/coach/screens/community_pop_code.dart';
 import 'package:sports_mind/coach/screens/create_community.dart';
 import 'package:sports_mind/coach/screens/players.dart';
 import 'package:sports_mind/coach/widget/bottom_navigation_bar.dart';
@@ -8,6 +9,7 @@ import 'package:sports_mind/coach/widgetsOfHome/community_card.dart';
 import 'package:sports_mind/coach/widgetsOfHome/player_progress_card.dart';
 import 'package:sports_mind/coach/widgetsOfHome/stats_card.dart';
 import 'package:sports_mind/http/api.dart';
+import 'package:flutter/foundation.dart'; 
 
 class CoachHome extends StatefulWidget {
   const CoachHome({super.key});
@@ -17,12 +19,7 @@ class CoachHome extends StatefulWidget {
 }
 
 class _CoachHomeState extends State<CoachHome> {
-  int _selectedIndex = 0; // Track selected tab
-
-  @override
-  void initState() {
-    super.initState();
-  }
+  int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -30,11 +27,10 @@ class _CoachHomeState extends State<CoachHome> {
     });
   }
 
-  // Screens for each tab
   final List<Widget> _screens = [
-    const HomeContent(), // Home screen content
-    const VRScheduleScreen(),
-    const Players(), // Players screen
+    const HomeContent(),
+    VRScheduleScreen(),
+    const Players(), 
     const AllCommunity(),
   ];
 
@@ -48,10 +44,13 @@ class _CoachHomeState extends State<CoachHome> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const CreateCommunity()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => CreateCommunity()),
+          );
         },
         backgroundColor: const Color.fromRGBO(106, 149, 122, 1),
+        shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -63,7 +62,6 @@ class _CoachHomeState extends State<CoachHome> {
   }
 }
 
-// Extracted Home Content to Keep it Clean
 class HomeContent extends StatefulWidget {
   const HomeContent({super.key});
 
@@ -73,14 +71,71 @@ class HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<HomeContent> {
   String? profileImage;
-
   final Api api = Api();
+
+  List<Map<String, dynamic>> communities = [];
+  List<Map<String, dynamic>> players = [];
+  int? playerCount;
+
+  final String baseUrl = 'https://calmletics-production.up.railway.app';
+
   Future<void> loadUserProfile() async {
-    final userData = await api.fetchUserData();
-    if (userData != null && mounted) {
-      setState(() {
-        profileImage = userData['image'];
-      });
+    try {
+      final userData = await api.fetchUserData();
+      if (userData != null && mounted) {
+        setState(() {
+          profileImage = userData['image'];
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading user profile: $e');
+      }
+    }
+  }
+
+  Future<void> loadCommunities() async {
+    try {
+      final data = await api.fetchCommunities();
+      if (mounted) {
+        setState(() {
+          communities = data;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading communities: $e');
+      }
+    }
+  }
+
+  Future<void> loadPlayers() async {
+    try {
+      final data = await api.fetchPlayers(); 
+      if (mounted) {
+        setState(() {
+          players = data;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading players: $e');
+      }
+    }
+  }
+
+  Future<void> loadPlayerCount() async {
+    try {
+      final count = await api.fetchPlayerCount(); 
+      if (mounted) {
+        setState(() {
+          playerCount = count;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading player count: $e');
+      }
     }
   }
 
@@ -88,6 +143,9 @@ class _HomeContentState extends State<HomeContent> {
   void initState() {
     super.initState();
     loadUserProfile();
+    loadCommunities();
+    loadPlayers();
+    loadPlayerCount();
   }
 
   @override
@@ -146,27 +204,42 @@ class _HomeContentState extends State<HomeContent> {
               ],
             ),
             const SizedBox(height: 8),
-            const SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  CommunityCard(
-                    title: 'Anxiety Warriors',
-                    level: 'low',
-                    week: 'Week 3 - Stress Management',
-                    players: 15,
-                    progress: 0.4,
-                  ),
-                  SizedBox(width: 8),
-                  CommunityCard(
-                    title: 'Mindfulness Group',
-                    level: 'intermediate',
-                    week: 'Week 2 - Breathing Techniques',
-                    players: 10,
-                    progress: 0.6,
-                  ),
-                ],
-              ),
+            SizedBox(
+              height: 140,
+              child: communities.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: communities.take(2).length, 
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final community = communities.take(2).toList()[index];
+                        final communityId =
+                            community['community_id'].toString();
+                        final otpCode = community['code'] ?? 'N/A';
+
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CommunityPopCode(
+                                  communityId: communityId,
+                                  otpCode: otpCode,
+                                ),
+                              ),
+                            );
+                          },
+                          child: CommunityCard(
+                            cardWidth: 323,
+                            title: community['name'],
+                            level: community['level'],
+                            players: community['players_count'],
+                            date: community['created_at'],
+                          ),
+                        );
+                      },
+                    ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -177,6 +250,7 @@ class _HomeContentState extends State<HomeContent> {
                 const Spacer(),
                 TextButton(
                   onPressed: () {
+                    // No communityId is passed here when navigating from CoachHome
                     Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -189,31 +263,43 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ],
             ),
-            const PlayerProgressCard(
-              playerName: 'Savannah Nguyen',
-              communityName: 'Anxiety Warriors',
-              statusMessage: "hasn't logged progress in the last 3 days",
-              icon: Icons.error_outline,
-              iconColor: Colors.red,
-            ),
-            const PlayerProgressCard(
-              playerName: 'Savannah Nguyen',
-              communityName: 'Anxiety Warriors',
-              statusMessage: "hasn't logged progress in the last 3 days",
-              icon: Icons.check_circle_outline,
-              iconColor: Colors.green,
+            const SizedBox(height: 8),
+            Column(
+              children: [
+                if (players.isEmpty)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  Column(
+                    children: players.take(2).map((player) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: PlayerProgressCard(
+                          playerName: player['player_name'] ?? 'Unknown',
+                          communityName: player['community_name'] ?? 'Unknown',
+                          statusMessage:
+                              player['status_message'] ?? 'No status',
+                          playerImage: player['image'],
+                          imageUrl: player['status_image'] != null
+                              ? '$baseUrl${player['status_image']}'
+                              : '',
+                        ),
+                      );
+                    }).toList(),
+                  ),
+              ],
             ),
             const SizedBox(height: 30),
-            const Row(
+            Row(
               children: [
                 StatsCard(
-                    title: 'Total Players',
-                    value: '50',
-                    iconPath: 'assets/images/tabler_play-football.png'),
-                Spacer(),
-                StatsCard(
+                  title: 'Total Players',
+                  value: playerCount?.toString() ?? '0',
+                  iconPath: 'assets/images/tabler_play-football.png',
+                ),
+                const Spacer(),
+                const StatsCard(
                     title: 'Sessions Today',
-                    value: '3',
+                    value: '6',
                     iconPath: 'assets/images/Group.png'),
               ],
             ),

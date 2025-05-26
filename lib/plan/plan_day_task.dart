@@ -169,7 +169,8 @@ class _PlanDayTaskState extends State<PlanDayTask>
                                sessionId: widget.sessionId,
                             ),
                             TaskTab(
-                                taskDescription: task, practical: practical),
+                                taskDescription: task, practical: practical,sessionId: widget.sessionId,),
+                              
                           ],
                         ),
                       ),
@@ -220,7 +221,7 @@ class _SessionTab extends StatelessWidget {
                     foregroundColor: Colors.black,
                     side: const BorderSide(color: Colors.grey),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 16),
+                        horizontal: 15, vertical: 15),
                     textStyle: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                     shape: RoundedRectangleBorder(
@@ -242,7 +243,7 @@ class _SessionTab extends StatelessWidget {
                     backgroundColor: kPrimaryColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 16),
+                        horizontal: 15, vertical: 15),
                     textStyle: const TextStyle(
                         fontSize: 18, fontWeight: FontWeight.bold),
                     shape: RoundedRectangleBorder(

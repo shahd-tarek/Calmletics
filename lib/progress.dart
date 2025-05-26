@@ -9,258 +9,265 @@ class ProgressPage extends StatefulWidget {
   _ProgressPageState createState() => _ProgressPageState();
 }
 
-class _ProgressPageState extends State<ProgressPage> {
-  String selectedTab = "Week"; // Default selected tab
+class _ProgressPageState extends State<ProgressPage>
+    with SingleTickerProviderStateMixin {
+  final List<Map<String, String>> emotionalStates = [
+    {"image": "assets/images/very_anxious.png", "text": "Very anxious"},
+    {"image": "assets/images/anxious.png", "text": "Anxious"},
+    {"image": "assets/images/tense.png", "text": "A bit tense"},
+    {"image": "assets/images/neutral.png", "text": "Neutral"},
+    {"image": "assets/images/slightly_calm.png", "text": "Slightly calm"},
+    {"image": "assets/images/calm.png", "text": "Calm"},
+    {"image": "assets/images/feeling_good.png", "text": "Feeling good"},
+    {"image": "assets/images/very_relaxed.png", "text": "Very relaxed"},
+    {"image": "assets/images/peaceful.png", "text": "Peaceful&happy"},
+    {"image": "assets/images/super_relaxed.png", "text": "Super relaxed"},
+  ];
+
+  late AnimationController _animationController;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    _animation =
+        CurvedAnimation(parent: _animationController, curve: Curves.easeIn);
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: bgcolor,
       appBar: AppBar(
-        title: const Text("Progress",
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text("Progress", style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.transparent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Toggle Tabs (Week, Month, Year)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: ["Week", "Month", "Year"].map((tab) {
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedTab = tab;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        color:
-                            selectedTab == tab ? kPrimaryColor : Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: Center(
-                        child: Text(
-                          tab,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: selectedTab == tab
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-
-            // Productivity Chart
-            const Text("Your Productivity",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 200,
-              child: SfCartesianChart(
-                primaryXAxis: const CategoryAxis(),
-                primaryYAxis: const NumericAxis(isVisible: false),
-                series: <CartesianSeries>[
-                  SplineAreaSeries<ChartData, String>(
-                    dataSource: [
-                      ChartData('4 April', 3),
-                      ChartData('5 April', 2),
-                      ChartData('6 April', 2.5),
-                      ChartData('7 April', 4),
-                      ChartData('8 April', 3),
-                      ChartData('9 April', 3.5),
-                      ChartData('Today', 4.5),
-                    ],
-                    xValueMapper: (ChartData data, _) => data.x,
-                    yValueMapper: (ChartData data, _) => data.y,
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.green.withOpacity(0.5),
-                        Colors.green.withOpacity(0.1)
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    borderWidth: 3,
-                    borderColor: Colors.green.shade700,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Progress & Relaxation Cards
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 170,
-                  height: 200,
-                  child: _progressCard(
-                      percentage: 60, text: "8/28 Days Completed"),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 170,
-                  height: 200,
-                  child: _infoCard("Relaxation mastery this week",
-                      "assets/images/Sad Face 1.png"),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Task Summary
-            _taskSummary(),
-
-            const SizedBox(height: 20),
-
-            // Mood Selection
-            const Text("How did you feel this week?",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: ["very sad", "sad", "good", "very good"].map((mood) {
-                return Column(
-                  children: [
-                    Icon(
-                      mood == "very sad"
-                          ? Icons.sentiment_very_dissatisfied
-                          : mood == "sad"
-                              ? Icons.sentiment_dissatisfied
-                              : mood == "good"
-                                  ? Icons.sentiment_satisfied
-                                  : Icons.sentiment_very_satisfied,
-                      color: mood == "good" ? Colors.green : Colors.grey,
-                      size: 32,
-                    ),
-                    Text(mood, style: const TextStyle(fontSize: 12)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const SizedBox(height: 20),
+          const Text("Your Productivity", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 200,
+            child: SfCartesianChart(
+              primaryXAxis: const CategoryAxis(),
+              primaryYAxis: const NumericAxis(isVisible: false),
+              series: <CartesianSeries>[
+                SplineAreaSeries<ChartData, String>(
+                  dataSource: [
+                    ChartData('4 April', 3),
+                    ChartData('5 April', 2),
+                    ChartData('6 April', 2.5),
+                    ChartData('7 April', 4),
+                    ChartData('8 April', 3),
+                    ChartData('9 April', 3.5),
+                    ChartData('Today', 4.5),
                   ],
+                  xValueMapper: (ChartData data, _) => data.x,
+                  yValueMapper: (ChartData data, _) => data.y,
+                  gradient: LinearGradient(
+                    colors: [Colors.green.withOpacity(0.5), Colors.green.withOpacity(0.1)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderWidth: 3,
+                  borderColor: Colors.green.shade700,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          const Text("Emotional State", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 100,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: emotionalStates.asMap().entries.map((entry) {
+                int index = entry.key;
+                var state = entry.value;
+                bool isToday = index == 4; // simulate "today" as the fifth item
+
+                return FadeTransition(
+                  opacity: isToday ? _animation : const AlwaysStoppedAnimation(1),
+                  child: Container(
+                    width: 80,
+                    margin: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 50,
+                          width: 50,
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isToday ? kPrimaryColor : Colors.grey.shade300,
+                              width: isToday ? 2 : 1,
+                            ),
+                          ),
+                          child: Image.asset(state['image']!, ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(state['text']!, textAlign: TextAlign.center, style: const TextStyle(fontSize: 10), maxLines: 2),
+                      ],
+                    ),
+                  ),
                 );
               }).toList(),
             ),
-            const SizedBox(height: 20),
+          ),
 
-            // Community Section
-            const Text("Community",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                
-                  child: _communityCard("3/4 VR sessions attended this week"),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                 
-                  child: _communityCard(
-                      "You're 8 out of 20 players in the community!"),
-                ),
-              ],
+          const SizedBox(height: 20),
+
+       Row(
+  children: [
+    Expanded(
+      child: Container(
+        height: 150,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
             ),
           ],
         ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  height: 80,
+                  width: 80,
+                  child: CircularProgressIndicator(
+                    value: 0.6,
+                    strokeWidth: 6,
+                    backgroundColor: Colors.grey.shade200,
+                    color: kPrimaryColor,
+                  ),
+                ),
+                const Text("60%\nCompleted", textAlign: TextAlign.center),
+              ],
+            ),
+            const Text("8/28 Days Completed"),
+          ],
+        ),
       ),
-    );
-  }
+    ),
+    const SizedBox(width: 10),
+    Expanded(
+      child: Container(
+        height: 150,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("Session 2", style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text("A Quiet Start"),
+                ],
+              ),
+            ),
+            Image.asset("assets/images/Sad Face 1.png", height: 40),
+          ],
+        ),
+      ),
+    ),
+  ],
+),
 
-  // Circular Progress Indicator Card
-  Widget _progressCard({required int percentage, required String text}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            value: percentage / 100,
-            backgroundColor: Colors.grey.shade200,
-            color: Colors.green,
+          const SizedBox(height: 30),
+
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Tasks", style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text("Your task completion progress"),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: 0.4,
+                  backgroundColor: Colors.grey.shade200,
+                  color: kPrimaryColor,
+                  minHeight: 6,
+                ),
+                const SizedBox(height: 4),
+                const Text("985 completed     215 remaining"),
+              ],
+            ),
           ),
+
           const SizedBox(height: 20),
-          Text(text, textAlign: TextAlign.center),
-        ],
-      ),
-    );
-  }
 
-  // Info Card
-  Widget _infoCard(String title, String asset) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: Column(
-        children: [
-          Image.asset(
-            asset,
-            height: 90,
-            width: 70,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: kPrimaryColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Center(
+              child: Text.rich(
+                TextSpan(
+                  text: "Rank\n",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  children: [
+                    TextSpan(
+                      text: "44/50",
+                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
           ),
-          const SizedBox(height: 10),
-          Text(title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-        ],
+        ]),
       ),
-    );
-  }
-
-  // Task Summary Card
-  Widget _taskSummary() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(16)),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text("Week 1", style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 5),
-          Text(
-              "Relaxation and Stress Reduction \nYou completed 2/5 tasks this week!"),
-        ],
-      ),
-    );
-  }
-
-  // Community Card
-  Widget _communityCard(String text) {
-    return Container(
-      width: 170,
-      height: 200,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: Colors.green.shade200,
-          borderRadius: BorderRadius.circular(16)),
-      child: Text(text,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontWeight: FontWeight.bold)),
     );
   }
 }

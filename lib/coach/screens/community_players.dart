@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:sports_mind/coach/tabbars/player_tab_bar.dart';
-import 'package:sports_mind/coach/widget/bottom_navigation_bar.dart';
 import 'package:sports_mind/coach/widgetsOfHome/player_progress_card.dart';
 import 'package:sports_mind/http/api.dart';
 
-class Players extends StatefulWidget {
+class CommPlayers extends StatefulWidget {
   final bool showBottomBar;
+  final String communityId; // Required community ID
 
-  const Players({super.key, this.showBottomBar = false});
+  const CommPlayers({
+    super.key,
+    required this.communityId,
+    this.showBottomBar = false,
+  });
 
   @override
-  State<Players> createState() => _PlayersState();
+  State<CommPlayers> createState() => _CommPlayersState();
 }
 
-class _PlayersState extends State<Players> {
+class _CommPlayersState extends State<CommPlayers> {
   String? status;
-  int _selectedIndex = 2;
-  final Api api = Api();
-
   List<Map<String, dynamic>> players = [];
   bool isLoading = true;
+
   final String baseUrl = 'https://calmletics-production.up.railway.app';
 
   @override
@@ -29,43 +31,21 @@ class _PlayersState extends State<Players> {
   }
 
   Future<void> _fetchPlayers() async {
-    List<Map<String, dynamic>> fetchedPlayers = [];
+    setState(() => isLoading = true);
 
-    if (status == null || status!.toLowerCase() == 'all') {
-      fetchedPlayers = await api.fetchPlayers(); // جلب جميع اللاعبين
-    } else {
-      fetchedPlayers =
-          await api.fetchFilteredPlayers(status!); // جلب اللاعبين حسب الحالة
-    }
+    try {
+      final fetchedPlayers = await Api.fetchCommunityFilterplayer(
+        widget.communityId,
+        status ?? 'all',
+      );
 
-    setState(() {
-      players = fetchedPlayers;
-      isLoading = false;
-    });
-  }
-
-  void _onItemTapped(int index) {
-    if (index != _selectedIndex) {
       setState(() {
-        _selectedIndex = index;
+        players = fetchedPlayers;
+        isLoading = false;
       });
-      _navigateToScreen(index);
-    }
-  }
-
-  void _navigateToScreen(int index) {
-    switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, "/home");
-        break;
-      case 1:
-        Navigator.pushReplacementNamed(context, "/vr_sessions");
-        break;
-      case 2:
-        break;
-      case 3:
-        Navigator.pushReplacementNamed(context, "/community");
-        break;
+    } catch (e) {
+      print("Error fetching players: $e");
+      setState(() => isLoading = false);
     }
   }
 
@@ -115,7 +95,6 @@ class _PlayersState extends State<Players> {
               onTabSelected: (tab) {
                 setState(() {
                   status = tab;
-                  isLoading = true;
                 });
                 _fetchPlayers();
               },
@@ -138,8 +117,7 @@ class _PlayersState extends State<Players> {
                       : ListView.builder(
                           itemCount: players.length,
                           itemBuilder: (context, index) {
-                            var player = players[index];
-
+                            final player = players[index];
                             return PlayerProgressCard(
                               playerName: player['player_name'] ?? 'Unknown',
                               communityName:
@@ -157,24 +135,6 @@ class _PlayersState extends State<Players> {
           ],
         ),
       ),
-      bottomNavigationBar: widget.showBottomBar
-          ? CustomBottomNavigationBar(
-              selectedIndex: _selectedIndex,
-              onItemTapped: _onItemTapped,
-            )
-          : null,
-      floatingActionButton: widget.showBottomBar
-          ? FloatingActionButton(
-              onPressed: () {
-                print("FAB tapped");
-              },
-              backgroundColor: const Color.fromRGBO(106, 149, 122, 1),
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
-            )
-          : null,
-      floatingActionButtonLocation: widget.showBottomBar
-          ? FloatingActionButtonLocation.centerDocked
-          : null,
     );
   }
 }

@@ -52,11 +52,9 @@ class LeaderboardItem extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16,
-                    color: name == "You"
-                        ? const Color.fromARGB(255, 142, 192, 158) // أخضر فاتح للمستخدم الحالي
-                        : Colors.white,
+                    color: Color.fromRGBO(0, 0, 0, 1),
                   ),
                 ),
                 Text(

@@ -1,24 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:sports_mind/community/freeCommunity/list.dart';
+import 'package:sports_mind/coach/tabbars/leaderboard_tab_bar.dart';
 import 'package:sports_mind/widgets/leaderboard_item.dart';
-import 'package:sports_mind/widgets/leaderboard_tab_bar.dart';
-import 'package:sports_mind/widgets/top_three_users.dart';
+import 'package:sports_mind/http/api.dart'; 
 
 class CoachLeaderboard extends StatefulWidget {
-  const CoachLeaderboard({super.key});
+  final String communityId; // Add communityId as a parameter
+
+  const CoachLeaderboard({super.key, required this.communityId});
 
   @override
   State<CoachLeaderboard> createState() => _CoachLeaderboardState();
 }
 
 class _CoachLeaderboardState extends State<CoachLeaderboard> {
-  String selectedTab = 'Today'; // Default selected tab
+  String selectedTab = 'Daily'; // Default selected tab
 
-  final List<Map<String, dynamic>> topUsers = [
-    {'name': 'Jane', 'points': 958, 'imagePath': 'assets/images/Coach 3.png'},
-    {'name': 'John', 'points': 1200, 'imagePath': 'assets/images/Coach 3.png'},
-    {'name': 'Alice', 'points': 800, 'imagePath': 'assets/images/Coach 3.png'},
-  ];
+  List<Map<String, dynamic>> leaderboardData = [];
+  bool isLoading = true;
+
+  // Fetch leaderboard data from API
+  Future<void> fetchLeaderboardData(String time) async {
+    final data = await Api.fetchLeaderboard(widget.communityId, time); // Use the passed communityId
+    setState(() {
+      leaderboardData = data;
+      isLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchLeaderboardData("weekly"); // Example time, can be updated
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +58,12 @@ class _CoachLeaderboardState extends State<CoachLeaderboard> {
                       setState(() {
                         selectedTab = tab;
                       });
+                      fetchLeaderboardData(selectedTab.toLowerCase());
                     },
                   ),
                   const SizedBox(height: 20),
-                  TopThreeUsers(topUsers: topUsers),
+                  // Display top 3 users
+                 
                 ],
               ),
             ),
@@ -70,22 +85,24 @@ class _CoachLeaderboardState extends State<CoachLeaderboard> {
                   ),
                 ],
               ),
-              child: Padding( 
+              child: Padding(
                 padding: const EdgeInsets.only(right: 16, left: 16),
-                child: ListView.builder(
-                  itemCount: items.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: LeaderboardItem(
-                        rank: items[index].number,
-                        name: items[index].name,
-                        points: items[index].point,
-                        imagePath: 'assets/images/Coach 3.png',
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator()) // Show loading indicator
+                    : ListView.builder(
+                        itemCount: leaderboardData.length,
+                        itemBuilder: (context, index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: LeaderboardItem(
+                              rank: leaderboardData[index]['rank'],
+                              name: leaderboardData[index]['name'],
+                              points: leaderboardData[index]['total_score'],
+                              imagePath: leaderboardData[index]['image'] ?? 'assets/images/default.png',
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
               ),
             ),
           ),

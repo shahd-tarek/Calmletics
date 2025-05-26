@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:sports_mind/coach/screens/payment.dart';
+import 'package:sports_mind/coach/payment.dart';
 import 'package:sports_mind/widgets/custom_button.dart';
+
 
 class Vr extends StatelessWidget {
   const Vr({super.key});
@@ -48,9 +49,9 @@ class Vr extends StatelessWidget {
                       text: "Start",
                       ontap: () {
                         Navigator.push(
-                          context,
+                          context,  
                           MaterialPageRoute(
-                              builder: (context) => const PaymentPage()),
+                              builder: (context) =>  const PaymentPage()),
                         );
                       }),
                   const SizedBox(

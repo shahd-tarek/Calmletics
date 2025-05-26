@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CustomTabBar extends StatelessWidget {
-  final String selectedLevel;
+  final String? selectedLevel;
   final Function(String) onTabSelected;
 
   const CustomTabBar({
@@ -32,9 +32,9 @@ class CustomTabBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildTabButton('low'),
-            _buildTabButton('intermediate'),
-            _buildTabButton('high'),
+            _buildTabButton('Low'),
+            _buildTabButton('Moderate'),
+            _buildTabButton('High'),
           ],
         ),
       ),
@@ -42,7 +42,7 @@ class CustomTabBar extends StatelessWidget {
   }
 
   Widget _buildTabButton(String tabName) {
-    bool isSelected = selectedLevel == tabName;
+    final bool isSelected = selectedLevel == tabName;
 
     return GestureDetector(
       onTap: () => onTabSelected(tabName),
@@ -55,11 +55,12 @@ class CustomTabBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
         ),
         child: Text(
-          tabName[0].toUpperCase() +
-              tabName.substring(1), // Capitalize first letter
+          tabName,
           style: TextStyle(
             fontSize: 16,
-            color: isSelected ? Colors.white : const Color.fromRGBO(176, 176, 176, 1),
+            color: isSelected
+                ? Colors.white
+                : const Color.fromRGBO(176, 176, 176, 1),
             fontWeight: FontWeight.bold,
           ),
         ),

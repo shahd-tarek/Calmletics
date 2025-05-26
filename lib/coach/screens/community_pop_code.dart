@@ -1,20 +1,83 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/coach/screens/coach_home.dart';
 import 'package:sports_mind/coach/screens/coach_leaderboard.dart';
-import 'package:sports_mind/coach/screens/players.dart';
+import 'package:sports_mind/coach/screens/community_players.dart';
 import 'package:sports_mind/coach/widgetsOfHome/player_progress_card.dart';
 import 'package:sports_mind/coach/widgetsOfHome/stats_card.dart';
+import 'package:sports_mind/http/api.dart';
 import 'package:sports_mind/widgets/leaderboard_item.dart';
 
-class PopCode extends StatefulWidget {
-  final String otpCode; // Add this to accept the OTP code
+class CommunityPopCode extends StatefulWidget {
+  final String communityId;
+  final String otpCode;
 
-  const PopCode({super.key, required this.otpCode}); // Constructor to receive the OTP code
+  const CommunityPopCode({super.key, required this.communityId, required this.otpCode});
 
   @override
-  State<PopCode> createState() => _PopCodeState();
+  State<CommunityPopCode> createState() => _CommunityPopCodeState();
 }
 
-class _PopCodeState extends State<PopCode> {
+class _CommunityPopCodeState extends State<CommunityPopCode> {
+  String? communityCode;
+  String? communityName;
+  String? communityLevel;
+  int? playersCount;
+  List<Map<String, dynamic>> sessions = [];
+  List<Map<String, dynamic>> topPlayers = [];
+  List<Map<String, dynamic>> players = [];
+  final String baseUrl = 'https://calmletics-production.up.railway.app';
+
+  bool isLoading = true;
+
+  String? playerName;
+  String? statusMessage;
+  String? imageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchCommunityData();
+  }
+
+  Future<void> fetchCommunityData() async {
+    final data = await Api.comDetails(widget.communityId);
+    final topPlayersData = await Api.fetchTopplayer(widget.communityId);
+    final fetchedComPlayers =
+        await Api.fetchCommunityplayer(widget.communityId);
+
+    if (data.isNotEmpty) {
+      setState(() {
+        communityCode = data['community_code'];
+        communityName = data['community_name'] ?? "Unknown";
+        playersCount = data['players_count'] ?? 0;
+        communityLevel = data['community_level'];
+        sessions = List<Map<String, dynamic>>.from(data['sessions'] ?? []);
+        topPlayers = topPlayersData;
+        players = fetchedComPlayers;
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        communityCode = "Error loading code";
+        isLoading = false;
+      });
+    }
+  }
+
+  Color getBackgroundColor(String? level) {
+    if (level == "Low") return const Color.fromRGBO(239, 255, 206, 1);
+    if (level == "Moderate") return const Color.fromRGBO(254, 251, 226, 1);
+    if (level == "High") return const Color.fromRGBO(255, 235, 228, 1);
+    return Colors.grey.shade200;
+  }
+
+  Color getTextColor(String? level) {
+    if (level == "Low") return const Color.fromRGBO(153, 194, 70, 1);
+    if (level == "Moderate") return const Color.fromRGBO(212, 193, 17, 1);
+    if (level == "High") return const Color.fromRGBO(212, 60, 10, 1);
+    return Colors.black;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,193 +89,264 @@ class _PopCodeState extends State<PopCode> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          Theme(
+            data: Theme.of(context).copyWith(
+              popupMenuTheme: PopupMenuThemeData(
+                color: const Color.fromRGBO(
+                    255, 255, 255, 1), 
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10), 
+                ),
+              ),
+            ),
+            child: PopupMenuButton<String>(
+              icon: const Icon(Icons.list, color: Colors.black),
+              onSelected: (String value) {
+                if (value == 'edit') {
+                  // Handle edit community
+                } else if (value == 'delete') {
+                  delateCommunityDialog(context);
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                PopupMenuItem<String>(
+                  value: 'edit',
+                  child: ListTile(
+                    leading: const Icon(Icons.edit),
+                    title: const Text(
+                      'Edit community',
+                      style: TextStyle(
+                          color: Color.fromRGBO(78, 78, 78, 1), fontSize: 16),
+                    ),
+                    tileColor: const Color.fromRGBO(
+                        255, 255, 255, 1), 
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                PopupMenuItem<String>(
+                  value: 'delete',
+                  child: ListTile(
+                    leading: const Icon(Icons.delete,
+                        color: Color.fromRGBO(218, 43, 82, 1)),
+                    title: const Text(
+                      'Delete',
+                      style: TextStyle(
+                          color: Color.fromRGBO(218, 43, 82, 1), fontSize: 16),
+                    ),
+                    tileColor: const Color.fromRGBO(
+                        255, 255, 255, 1), 
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        ],
       ),
-      body: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // OTP Code Section
-            Center(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.black12,
-                        backgroundImage: AssetImage(
-                            'assets/images/Coach 3.png'), // Ensure this image exists
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Text("Anxiety Warriors",
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold)),
-                              const SizedBox(width: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(239, 255, 206, 1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text("low",
-                                    style: TextStyle(
-                                        color: Color.fromRGBO(153, 194, 70, 1),
-                                        fontSize: 12)),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: const Color.fromRGBO(233, 239, 235, 1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
+                  Center(
+                    child: Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.black12,
+                          backgroundImage:
+                              AssetImage('assets/images/Coach 3.png'),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
-                                const Icon(Icons.message,
-                                    color: Color.fromRGBO(80, 112, 92, 1),
-                                    size: 16),
-                                const SizedBox(width: 4),
-                                Text(widget.otpCode,
+                                Text(communityName ?? '',
                                     style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color.fromRGBO(80, 112, 92, 1))),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: getBackgroundColor(communityLevel),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    communityLevel ?? '',
+                                    style: TextStyle(
+                                      color: getTextColor(communityLevel),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color.fromRGBO(233, 239, 235, 1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.message,
+                                      color: Color.fromRGBO(80, 112, 92, 1),
+                                      size: 16),
+                                  const SizedBox(width: 4),
+                                  Text(communityCode ?? '',
+                                      style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color:
+                                              Color.fromRGBO(80, 112, 92, 1)))
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Plan',
+                    style: TextStyle(
+                        color: Color.fromRGBO(78, 78, 78, 1),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: sessions.map((session) {
+                        double progress = double.tryParse(
+                                session['completion_percentage']
+                                        ?.replaceAll('%', '') ??
+                                    '0')! /
+                            100;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: _buildPlanCard(
+                            session['session_number'] ?? '',
+                            session['session_name'] ?? '',
+                            progress,
                           ),
-                        ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      StatsCard(
+                          title: 'Total Players',
+                          value: playersCount?.toString() ?? '0',
+                          iconPath: 'assets/images/tabler_play-football.png'),
+                      const Spacer(),
+                      const StatsCard(
+                          title: 'Sessions Today',
+                          value: '3',
+                          iconPath: 'assets/images/Group.png'),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      _buildIconButton("Edit player", Icons.edit),
+                      const SizedBox(width: 100),
+                      _buildIconButton("View schedule", Icons.calendar_month),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionHeader("Top player", "Leader board"),
+                  const SizedBox(height: 10),
+                  Column(
+                    children: topPlayers.map((player) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: LeaderboardItem(
+                          rank: player['rank'] ?? 0,
+                          name: player['name'] ?? 'Unknown',
+                          points: player['total_score'] ?? 0,
+                          imagePath:
+                              player['image'] ?? 'assets/images/avatar5.png',
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      const Text('Player Progress',
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
+                      const Spacer(),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CommPlayers(
+                                communityId: widget.communityId,
+                                showBottomBar: true,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          'See All',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                        ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Column(
+                    children: [
+                      if (players.isEmpty)
+                        const Center(child: Text('No players found'))
+                      else
+                        Column(
+                          children: players.take(2).map((player) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: PlayerProgressCard(
+                                playerName: player['player_name'] ?? 'Unknown',
+                                communityName:
+                                    player['community_name'] ?? 'Unknown',
+                                statusMessage:
+                                    player['status_message'] ?? 'No status',
+                                playerImage: player['image'],
+                                imageUrl: player['status_image'] != null
+                                    ? '$baseUrl${player['status_image']}'
+                                    : '',
+                              ),
+                            );
+                          }).toList(),
+                        ),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
-
-            // Rest of the UI remains the same
-            const Text(
-              'plan',
-              style: TextStyle(
-                  color: Color.fromRGBO(78, 78, 78, 1),
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildPlanCard(
-                      "week 1", "Relaxation and Stress Reduction", 0.5),
-                  const SizedBox(width: 8),
-                  _buildPlanCard("week 2", "Mindfulness Techniques", 0.3),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Stats Section
-            const Row(
-              children: [
-                StatsCard(
-                    title: 'Total Players',
-                    value: '18',
-                    iconPath: 'assets/images/tabler_play-football.png'),
-                Spacer(),
-                StatsCard(
-                    title: 'Sessions Today',
-                    value: '3',
-                    iconPath: 'assets/images/Group.png'),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Add Player and View Schedule Buttons
-            Row(
-              children: [
-                _buildIconButton("Add player", Icons.add),
-                const SizedBox(
-                  width: 100,
-                ),
-                _buildIconButton("View schedule", Icons.calendar_today),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Top Player Section
-            _buildSectionHeader("Top player", "Leader board"),
-            const SizedBox(height: 10),
-            const LeaderboardItem(
-                rank: 4,
-                name: 'ahmed',
-                points: 2222,
-                imagePath: 'assets/images/Coach 3.png'),
-            const SizedBox(height: 8),
-            const LeaderboardItem(
-                rank: 5,
-                name: 'mohamed',
-                points: 2212,
-                imagePath: 'assets/images/Coach 3.png'),
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
-              children: [
-                const Text('Player Progress',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const Players(
-                                  showBottomBar: true,
-                                )));
-                  },
-                  child: const Text('See All',
-                      style: TextStyle(fontSize: 16, color: Colors.grey)),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            const PlayerProgressCard(
-              playerName: 'Savannah Nguyen',
-              communityName: 'Anxiety Warriors',
-              statusMessage: "hasn't logged progress in the last 3 days",
-              icon: Icons.error_outline,
-              iconColor: Colors.red,
-            ),
-            const PlayerProgressCard(
-              playerName: 'Savannah Nguyen',
-              communityName: 'Anxiety Warriors',
-              statusMessage: "hasn't logged progress in the last 3 days",
-              icon: Icons.error_outline,
-              iconColor: Colors.red,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
-  // Widget for plan cards
-  Widget _buildPlanCard(String week, String title, double progress) {
+  Widget _buildPlanCard(String sessions, String title, double progress) {
     return Container(
       width: 377,
       height: 130,
@@ -225,7 +359,7 @@ class _PopCodeState extends State<PopCode> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(week,
+            Text(sessions,
                 style: const TextStyle(
                     fontSize: 14, color: Color.fromRGBO(133, 133, 133, 1))),
             const SizedBox(height: 4),
@@ -266,7 +400,6 @@ class _PopCodeState extends State<PopCode> {
     );
   }
 
-  // Widget for icon buttons
   Widget _buildIconButton(String title, IconData icon) {
     return Row(children: [
       Container(
@@ -277,23 +410,22 @@ class _PopCodeState extends State<PopCode> {
           borderRadius: BorderRadius.circular(5),
         ),
         child: Center(
-          // Centering the icon
           child: Icon(
             icon,
             size: 16,
-            color: const Color.fromRGBO(255, 255, 255, 1),
+            color: Colors.white,
           ),
         ),
       ),
       const SizedBox(width: 8),
       Text(
         title,
-        style: const TextStyle(fontSize: 16, color: Color.fromRGBO(78, 78, 78, 1)),
+        style:
+            const TextStyle(fontSize: 16, color: Color.fromRGBO(78, 78, 78, 1)),
       )
     ]);
   }
 
-  // Widget for section headers
   Widget _buildSectionHeader(String title, String actionText) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -304,7 +436,10 @@ class _PopCodeState extends State<PopCode> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const CoachLeaderboard()),
+              MaterialPageRoute(
+                  builder: (context) => CoachLeaderboard(
+                        communityId: widget.communityId,
+                      )),
             );
           },
           style: ElevatedButton.styleFrom(
@@ -325,6 +460,178 @@ class _PopCodeState extends State<PopCode> {
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> delateCommunityDialog(BuildContext context) async {
+    bool isDeleting = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: Container(
+                        height: 48,
+                        width: 48,
+                        decoration: BoxDecoration(
+                            color: const Color.fromRGBO(218, 43, 82, 1),
+                            borderRadius: BorderRadius.circular(10)),
+                        child: IconButton(
+                          icon: const Icon(Icons.close,
+                              color: Colors.white, size: 32),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 60,
+                    ),
+                    Container(
+                      width: 112,
+                      height: 112,
+                      decoration: BoxDecoration(
+                          color: const Color.fromRGBO(255, 235, 228, 1),
+                          borderRadius: BorderRadius.circular(500)),
+                      child: const Icon(
+                        Icons.delete,
+                        color: Color.fromRGBO(218, 43, 82, 1),
+                        size: 64,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "Remove this community",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color.fromRGBO(78, 78, 78, 1),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'This community all associated data will\nbe permanently deleted. Do you want to\nproceed?',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w400,
+                          color: Color.fromRGBO(78, 78, 78, 1)),
+                    ),
+                    const SizedBox(height: 50),
+                    Row(
+                      children: [
+                      
+                        SizedBox(
+                          width: 145,
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: isDeleting
+                                ? null
+                                : () {
+                                    Navigator.pop(context);
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: const BorderSide(
+                                  color: Color.fromRGBO(78, 78, 78, 1),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              "Cancel",
+                              style: TextStyle(
+                                color: Color.fromRGBO(78, 78, 78, 1),
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        
+                        SizedBox(
+                          width: 145,
+                          height: 52,
+                          child: ElevatedButton(
+                            onPressed: isDeleting
+                                ? null
+                                : () async {
+                                    setState(() => isDeleting = true);
+                                    try {
+                                      final result = await Api.delateCommunity(
+                                          widget.communityId);
+
+                                      if (result['success'] == true) {
+                                        Navigator.pop(
+                                            context); 
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const CoachHome(),
+                                          ),
+                                        );
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: Text(result['message']),
+                                          backgroundColor: Colors.green,
+                                        ));
+                                      } else {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: Text(result['error'] ??
+                                              'Failed to delete community'),
+                                          backgroundColor: Colors.red,
+                                        ));
+                                        Navigator.pop(context);
+                                      }
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                        content: Text('Error: $e'),
+                                        backgroundColor: Colors.red,
+                                      ));
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  const Color.fromRGBO(218, 43, 82, 1),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            child: Text(
+                              isDeleting ? "Deleting..." : "Delete",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
