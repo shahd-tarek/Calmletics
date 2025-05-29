@@ -9,7 +9,8 @@ import 'package:sports_mind/coach/widgetsOfHome/community_card.dart';
 import 'package:sports_mind/coach/widgetsOfHome/player_progress_card.dart';
 import 'package:sports_mind/coach/widgetsOfHome/stats_card.dart';
 import 'package:sports_mind/http/api.dart';
-import 'package:flutter/foundation.dart'; 
+import 'package:flutter/foundation.dart';
+import 'package:sports_mind/views/user_profile.dart'; 
 
 class CoachHome extends StatefulWidget {
   const CoachHome({super.key});
@@ -29,7 +30,7 @@ class _CoachHomeState extends State<CoachHome> {
 
   final List<Widget> _screens = [
     const HomeContent(),
-    VRScheduleScreen(),
+    const VRScheduleScreen(),
     const Players(), 
     const AllCommunity(),
   ];
@@ -46,7 +47,7 @@ class _CoachHomeState extends State<CoachHome> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => CreateCommunity()),
+            MaterialPageRoute(builder: (context) => const CreateCommunity()),
           );
         },
         backgroundColor: const Color.fromRGBO(106, 149, 122, 1),
@@ -158,25 +159,35 @@ class _HomeContentState extends State<HomeContent> {
             const SizedBox(height: 40),
             Row(
               children: [
-                Container(
-                  height: 75,
-                  width: 75,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(50),
-                    border: Border.all(
-                      color: const Color.fromRGBO(226, 226, 226, 1),
-                      width: 1,
+                GestureDetector(
+                   onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const UserProfileOverview(),
+                            ),
+                          );
+                        },
+                  child: Container(
+                    height: 70,
+                    width: 70,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(50),
+                      border: Border.all(
+                        color: const Color.fromRGBO(226, 226, 226, 1),
+                        width: 1,
+                      ),
                     ),
+                    child: profileImage == null || profileImage!.isEmpty
+                        ? const CircularProgressIndicator()
+                        : CircleAvatar(
+                            radius: 32,
+                            backgroundImage: AssetImage(profileImage!),
+                            onBackgroundImageError: (_, __) => setState(() {
+                              profileImage = null;
+                            }),
+                          ),
                   ),
-                  child: profileImage == null || profileImage!.isEmpty
-                      ? const CircularProgressIndicator()
-                      : CircleAvatar(
-                          radius: 32,
-                          backgroundImage: AssetImage(profileImage!),
-                          onBackgroundImageError: (_, __) => setState(() {
-                            profileImage = null;
-                          }),
-                        ),
                 ),
                 const Spacer(),
                 const Icon(Icons.notifications, size: 32, color: Colors.grey),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sports_mind/calm%20routine/box_breathing.dart';
+import 'package:sports_mind/calm_routine/box_breathing.dart';
 import 'package:sports_mind/constant.dart';
 
 class QuickTaskOne extends StatefulWidget {

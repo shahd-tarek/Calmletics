@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/coach/VR/vr_schedula.dart';
+import 'package:sports_mind/coach/screens/coach_home.dart';
+import 'package:sports_mind/coach/screens/players.dart';
 import 'package:sports_mind/coach/tabbars/community_tab_bar.dart';
 import 'package:sports_mind/coach/widget/bottom_navigation_bar.dart';
 import 'package:sports_mind/coach/widgetsOfHome/community_card.dart';
@@ -56,17 +59,28 @@ class _AllCommunityState extends State<AllCommunity> {
 
   void _navigateToScreen(int index) {
     switch (index) {
-      case 0:
-        Navigator.pushReplacementNamed(context, "/home");
+        case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const CoachHome()),
+        );
         break;
       case 1:
-        Navigator.pushReplacementNamed(context, "/vr_sessions");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const VRScheduleScreen()),
+        );
         break;
       case 2:
-        Navigator.pushReplacementNamed(context, "/players");
-        break;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Players()),
+        );
       case 3:
-        Navigator.pushReplacementNamed(context, "/community");
+       Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AllCommunity()),
+        );
         break;
     }
   }

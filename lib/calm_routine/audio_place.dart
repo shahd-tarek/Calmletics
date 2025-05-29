@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'dart:async';
 import 'package:sports_mind/constant.dart';
-import 'package:sports_mind/calm%20routine/audio_screen.dart';
+import 'package:sports_mind/calm_routine/audio_screen.dart';
 
 class AudioInPlace extends StatefulWidget {
   final String imagePath;

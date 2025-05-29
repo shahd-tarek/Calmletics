@@ -38,6 +38,7 @@ class _MainScreenState extends State<MainScreen> {
         onPressed: () => _goToChatBot(context),
         backgroundColor: kPrimaryColor,
         tooltip: 'Chat Bot',
+        shape: const CircleBorder(),
         child: const Icon(Icons.chat, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

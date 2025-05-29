@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/coach/screens/choose_plan.dart';
 import 'package:sports_mind/coach/screens/community_pop_code.dart';
 import 'package:sports_mind/coach/tabbars/tab_bar.dart';
 import 'package:sports_mind/http/api.dart';
@@ -214,9 +215,19 @@ class _CreateCommunityState extends State<CreateCommunity> {
                                                 ),
                                               ),
                                               const Spacer(),
-                                              const Icon(
-                                                Icons.arrow_forward_ios,
-                                                size: 16,
+                                              GestureDetector(
+                                                onTap: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                             ChoosePlanPage(planId: plan['plan_id'].toString(),)),
+                                                  );
+                                                },
+                                                child: const Icon(
+                                                  Icons.arrow_forward_ios,
+                                                  size: 16,
+                                                ),
                                               ),
                                             ],
                                           ),
@@ -299,18 +310,17 @@ class _CreateCommunityState extends State<CreateCommunity> {
                                 planId,
                               );
 
-                              print(
-                                  "API Response: $response"); 
+                              print("API Response: $response");
 
                               if (response['data'] != null &&
                                   response['data']['code'] != null) {
                                 String otpCode =
                                     response['data']['code'].toString();
-                                String communityId = response['data']['id']
-                                    .toString(); 
+                                String communityId =
+                                    response['data']['id'].toString();
 
-                                createCommunityPopDialog(context, otpCode,
-                                    communityId); 
+                                createCommunityPopDialog(
+                                    context, otpCode, communityId);
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(

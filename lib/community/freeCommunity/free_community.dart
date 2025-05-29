@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/community/coachCommunity/community-pop-code.dart';
 import 'package:sports_mind/community/freeCommunity/Leaderboard.dart';
 import 'package:sports_mind/community/freeCommunity/chat.dart';
 import 'package:sports_mind/http/api.dart';
@@ -152,6 +153,17 @@ class freeCommunityState extends State<freeCommunity> {
                   );
                 },
               ),
+              const SizedBox(height: 30),
+              Center(
+                child: GestureDetector(
+                  onTap: () {
+                    showCommunityDialog(context);
+                  },
+                  child: Image.asset("assets/images/coach comunity.png",
+                
+                  ),
+                ),
+              )
 
             ],
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sports_mind/constant.dart';
-import 'package:sports_mind/calm%20routine/quick_t3.dart';
+import 'package:sports_mind/calm_routine/quick_t3.dart';
 
 class BoxBreathingScreen extends StatefulWidget {
   final int pageIndex;

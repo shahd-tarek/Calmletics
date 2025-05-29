@@ -87,7 +87,10 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CoachHome()),
+        ),
         ),
         actions: [
           Theme(

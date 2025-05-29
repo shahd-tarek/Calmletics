@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/constant.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 class VRScheduleScreen extends StatelessWidget {
@@ -7,9 +8,9 @@ class VRScheduleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFCF8F5), // Light background
+      backgroundColor: bgcolor, // Light background
       appBar: AppBar(
-        backgroundColor: const Color(0xFFFCF8F5),
+        backgroundColor: bgcolor,
         elevation: 0,
         title: const Text("VR Sessions", style: TextStyle(color: Colors.black)),
         centerTitle: true,
@@ -32,7 +33,7 @@ class VRScheduleScreen extends StatelessWidget {
               ),
               calendarStyle: const CalendarStyle(
                 todayDecoration: BoxDecoration(
-                  color: Color(0xFF5D735F),
+                  color: kPrimaryColor,
                   shape: BoxShape.circle,
                 ),
                 selectedDecoration: BoxDecoration(
@@ -47,13 +48,16 @@ class VRScheduleScreen extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: 10, // Example slots
+              itemCount: 4, // Example slots
               itemBuilder: (context, index) {
-                return ScheduleCard(
-                  time: "${1 + index} PM",
-                  name: "Savannah Nguyen",
-                  team: "Anxiety Warriors",
-                  status: "low",
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10,top: 5),
+                  child: ScheduleCard(
+                    time: "${1 + index} PM",
+                    name: "Savannah Nguyen",
+                    team: "Anxiety Warriors",
+                    status: "low",
+                  ),
                 );
               },
             ),
@@ -85,14 +89,15 @@ class ScheduleCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFDFF1D8),
+          color: const Color(0xffE9EFEB),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
           children: [
             Text(time),
+            const SizedBox(width: 8,),
             const CircleAvatar(
-              backgroundColor: Colors.blue,
+              backgroundColor:kPrimaryColor,
               radius: 20,
               child: Icon(Icons.person, color: Colors.white),
             ),
@@ -112,7 +117,7 @@ class ScheduleCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.lightGreenAccent,
+                color: const Color(0xffEFFFCE),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(status,

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/coach/VR/vr_schedula.dart';
+import 'package:sports_mind/coach/screens/all_community.dart';
+import 'package:sports_mind/coach/screens/coach_home.dart';
 import 'package:sports_mind/coach/tabbars/player_tab_bar.dart';
 import 'package:sports_mind/coach/widget/bottom_navigation_bar.dart';
 import 'package:sports_mind/coach/widgetsOfHome/player_progress_card.dart';
@@ -53,18 +56,27 @@ class _PlayersState extends State<Players> {
     }
   }
 
-  void _navigateToScreen(int index) {
+   void _navigateToScreen(int index) {
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(context, "/home");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const CoachHome()),
+        );
         break;
       case 1:
-        Navigator.pushReplacementNamed(context, "/vr_sessions");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const VRScheduleScreen()),
+        );
         break;
       case 2:
-        break;
+        break; // Already on Players screen
       case 3:
-        Navigator.pushReplacementNamed(context, "/community");
+       Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AllCommunity()),
+        );
         break;
     }
   }
