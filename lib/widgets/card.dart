@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sports_mind/constant.dart';
+
 Widget buildCard({
   required String title,
   required String description,
   required String image,
-   required Widget navigateTo,
- required BuildContext context,
+  required Widget navigateTo,
+  required BuildContext context,
 }) {
   return GestureDetector(
     onTap: () {
@@ -19,11 +20,11 @@ Widget buildCard({
     child: Container(
       width: 300,
       height: 180,
-      padding: const EdgeInsets.only(left: 20,top: 20,bottom: 20),
+      padding: const EdgeInsets.only(left: 20, top: 25, bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border.all(
-          color: Colors.grey,
+          color: const Color(0xffDADADA),
           width: 1.0,
         ),
         borderRadius: BorderRadius.circular(32),
@@ -38,10 +39,9 @@ Widget buildCard({
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: textcolor
-                  ),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: textcolor),
                 ),
                 const SizedBox(height: 5),
                 Text(
@@ -55,6 +55,7 @@ Widget buildCard({
             ),
           ),
           Image.asset(
+            fit: BoxFit.cover,
             image,
             height: 190,
             width: 190,

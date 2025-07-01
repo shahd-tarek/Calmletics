@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sports_mind/community/coachCommunity/coach_community.dart';
 import 'package:sports_mind/constant.dart';
+import 'package:sports_mind/http/api.dart';
 import 'package:sports_mind/widgets/custom_button.dart';
 
 void showCommunityDialog(BuildContext context) {
   List<TextEditingController> textControllers =
       List.generate(4, (index) => TextEditingController());
   List<FocusNode> focusNodes = List.generate(4, (index) => FocusNode());
+  final Api api = Api();
 
   showDialog(
     context: context,
@@ -59,9 +61,10 @@ void showCommunityDialog(BuildContext context) {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(
-                      4,
-                      (index) => _buildOTPBox(
-                          index, textControllers, focusNodes, context)),
+                    4,
+                    (index) => _buildOTPBox(
+                        index, textControllers, focusNodes, context),
+                  ),
                 ),
                 const SizedBox(height: 40),
                 const Text(
@@ -74,12 +77,35 @@ void showCommunityDialog(BuildContext context) {
                   width: double.infinity,
                   child: CustomButton(
                     text: "Join Now",
-                    ontap: () {
-                      Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const coachCommunity()),
-                          );
+                    ontap: () async {
+                      String code =
+                          textControllers.map((c) => c.text.trim()).join();
+
+                      if (code.length < 4) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                                  Text("Please enter the full 4-digit code")),
+                        );
+                        return;
+                      }
+
+                      bool success = await api.joinPreCommunity(code);
+
+                      if (success) {
+                        Navigator.pop(context); // Close dialog
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const coachCommunity()),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  "Invalid code or failed to join community")),
+                        );
+                      }
                     },
                   ),
                 ),

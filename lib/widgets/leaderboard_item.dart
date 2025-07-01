@@ -24,7 +24,7 @@ class LeaderboardItem extends StatelessWidget {
         color: const Color.fromRGBO(255, 255, 255, 1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color.fromRGBO(226, 226, 226, 1),
+          color:  const Color(0xffDADADA),
           width: 1,
         ),
       ),

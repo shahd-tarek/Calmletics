@@ -253,10 +253,14 @@ class _SurveyScoreScreenState extends State<SurveyScoreScreen> {
       int totalScore = calculateTotalScore();
       int maxScore = surveyData.length * 5;
       double percentage = (totalScore / maxScore) * 100;
-      
+
       // Save the score and anxiety level to the database
       final api = Api();
-      api.saveScore(percentage.toInt(),).then((success) {
+      api
+          .saveScore(
+        percentage.toInt(),
+      )
+          .then((success) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -302,7 +306,7 @@ class _SurveyScoreScreenState extends State<SurveyScoreScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: bgcolor,
       ),
       body: PageView.builder(
         controller: _pageController,
@@ -326,9 +330,16 @@ class _SurveyScoreScreenState extends State<SurveyScoreScreen> {
         Expanded(
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(35),
-            ),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(35),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xff808080).withOpacity(0.2),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, -2),
+                  )
+                ]),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(

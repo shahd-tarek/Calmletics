@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:sports_mind/community/freeCommunity/Leaderboard.dart';
+import 'package:sports_mind/community/coachCommunity/pre_leaderboard.dart';
+
 import 'package:sports_mind/community/freeCommunity/chat.dart';
 import 'package:sports_mind/http/api.dart';
+import 'package:sports_mind/plan/plan_page.dart';
 import 'package:sports_mind/widgets/option_card.dart';
 
 class coachCommunity extends StatefulWidget {
@@ -44,27 +46,16 @@ class coachCommunityState extends State<coachCommunity> {
               const SizedBox(height: 30),
               Row(
                 children: [
-                  Stack(
+                Stack(
                     alignment: Alignment.center,
                     children: [
-                      SizedBox(
-                        width: 64,
-                        height: 64,
-                        child: CircularProgressIndicator(
-                          value: progressValue,
-                          strokeWidth: 6,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color.fromRGBO(106, 149, 122, 1)),
-                        ),
-                      ),
                       profileImage == null || profileImage!.isEmpty
                           ? const CircularProgressIndicator()
                           : CircleAvatar(
-                              radius: 32,
+                              radius: 40,
                               backgroundImage: AssetImage(profileImage!),
                               onBackgroundImageError: (_, __) => setState(() {
-                                profileImage =
-                                    null; // Handle broken image links
+                                profileImage = null;
                               }),
                             ),
                     ],
@@ -90,7 +81,7 @@ class coachCommunityState extends State<coachCommunity> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => const Leaderboard()),
+                                builder: (context) =>  const PreLeaderboard()),
                           );
                         },
                         style: ElevatedButton.styleFrom(
@@ -121,7 +112,12 @@ class coachCommunityState extends State<coachCommunity> {
               const SizedBox(height: 40),
               buildOptionCard(
                 "Start daily workout",
-                () {},
+                () {
+                   Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) =>  const PlanPage()),
+                  );
+                },
               ),
               const SizedBox(height: 20),
               const Text(" Your Safe Space to Talk and Learn",
@@ -130,7 +126,7 @@ class coachCommunityState extends State<coachCommunity> {
                       fontWeight: FontWeight.bold,
                       fontSize: 16)),
               const SizedBox(height: 20),
-              buildOptionCard(
+              buildOptionCardtwo(
                 "Discuss personal strategies, get real-time\nfeedback, and boost your performance",
                 () {
                    Navigator.push(

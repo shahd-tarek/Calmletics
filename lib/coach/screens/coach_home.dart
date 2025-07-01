@@ -252,7 +252,6 @@ class _HomeContentState extends State<HomeContent> {
                       },
                     ),
             ),
-            const SizedBox(height: 16),
             Row(
               children: [
                 const Text('Player Progress',
@@ -299,7 +298,7 @@ class _HomeContentState extends State<HomeContent> {
                   ),
               ],
             ),
-            const SizedBox(height: 30),
+            const SizedBox(height: 8),
             Row(
               children: [
                 StatsCard(

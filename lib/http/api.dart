@@ -790,9 +790,10 @@ class Api {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        List users = data['users'] ?? [];
+        // تجيب others فقط
+        List top3 = data['top3'] ?? [];
 
-        return users
+        return top3
             .map<Map<String, dynamic>>((user) => {
                   "name": user["name"],
                   "image": user["image"],
@@ -804,59 +805,11 @@ class Api {
                 })
             .toList();
       } else {
-        print('Failed to fetch top players: ${response.statusCode}');
+        print('Failed to fetch leaderboard: ${response.statusCode}');
         return [];
       }
     } catch (e) {
-      print('Error fetching top players: $e');
-      return [];
-    }
-  }
-
-//leaderboard
-  static Future<List<Map<String, dynamic>>> fetchLeaderboard(
-      String communityId, String time) async {
-    final prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString("user_token");
-
-    if (token == null) {
-      print("Token is null");
-      return [];
-    }
-
-    final url = Uri.parse(
-      "https://calmletics-production.up.railway.app/api/coach/leaderboard?time=$time&community_id=$communityId",
-    );
-
-    final headers = {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    };
-
-    try {
-      final response = await http.get(url, headers: headers);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        List users = data['users'] ?? [];
-
-        return users
-            .map<Map<String, dynamic>>((user) => {
-                  "name": user["name"],
-                  "image": user["image"],
-                  "flag": user["flag"],
-                  "com_pre_id": user["com_pre_id"],
-                  "user_id": user["user_id"],
-                  "total_score": user["total_score"],
-                  "rank": user["rank"],
-                })
-            .toList();
-      } else {
-        print('Failed to fetch top players: ${response.statusCode}');
-        return [];
-      }
-    } catch (e) {
-      print('Error fetching top players: $e');
+      print('Error fetching leaderboard: $e');
       return [];
     }
   }
@@ -1013,4 +966,339 @@ class Api {
       throw Exception('Failed to load sessions');
     }
   }
+  //update-community-name
+  static Future<Map<String, dynamic>> updateCommunityName(
+      String communityId, String newName) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("user_token");
+
+    if (token == null) {
+      return {
+        "success": false,
+        "error": "Token not found. Please log in again.",
+      };
+    }
+
+    final url = Uri.parse("$baseUrl/coach/update-community-name");
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    final body = jsonEncode({
+      "community_id": communityId,
+      'new_name': newName,
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "message": data["message"] ?? "Player removed successfully.",
+        };
+      } else {
+        return {
+          "success": false,
+          "error": data["error"] ?? "Failed to remove player.",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "error": "Exception occurred: $e",
+      };
+    }
+  }
+  //remove player
+  static Future<Map<String, dynamic>> removePlayer(int playerId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("user_token");
+
+    if (token == null) {
+      return {
+        "success": false,
+        "error": "Token not found. Please log in again.",
+      };
+    }
+
+    final url = Uri.parse("$baseUrl/coach/remove-player-from-community");
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    final body = jsonEncode({
+      "player_id": playerId, // Required for identifying the player
+    });
+
+    try {
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: body,
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          "success": true,
+          "message": data["message"] ?? "Player removed successfully.",
+        };
+      } else {
+        return {
+          "success": false,
+          "error": data["error"] ?? "Failed to remove player.",
+        };
+      }
+    } catch (e) {
+      return {
+        "success": false,
+        "error": "Exception occurred: $e",
+      };
+    }
+  }
+//coach leaderboard
+  static Future<Map<String, List<Map<String, dynamic>>>> fetchCoachLeaderboard(
+      String communityId, String time) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    if (token == null) {
+      print("Token is null");
+      return {"top3": [], "others": []};
+    }
+
+    final url = Uri.parse(
+      "https://calmletics-production.up.railway.app/api/coach/leaderboard?time=$time&community_id=$communityId",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        List top3 = data['top3'] ?? [];
+        List others = data['others'] ?? [];
+
+        List<Map<String, dynamic>> parseUsers(List<dynamic> users) {
+          return users
+              .map<Map<String, dynamic>>((user) => {
+                    "name": user["name"],
+                    "image": user["image"],
+                    "flag": user["flag"],
+                    "com_pre_id": user["com_pre_id"],
+                    "user_id": user["user_id"],
+                    "total_score": user["total_score"],
+                    "rank": user["rank"],
+                  })
+              .toList();
+        }
+
+        return {
+          "top3": parseUsers(top3),
+          "others": parseUsers(others),
+        };
+      } else {
+        print('Failed to fetch leaderboard: ${response.statusCode}');
+        return {"top3": [], "others": []};
+      }
+    } catch (e) {
+      print('Error fetching leaderboard: $e');
+      return {"top3": [], "others": []};
+    }
+  }
+
+//free leaderboard
+  static Future<Map<String, List<Map<String, dynamic>>>> fetchFreeLeaderboard(
+      String time) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    if (token == null) {
+      print("Token is null");
+      return {"top3": [], "others": []};
+    }
+
+    final url = Uri.parse(
+      "$baseUrl/player/leaderboard?time=$time",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        List top3 = data['top3'] ?? [];
+        List others = data['others'] ?? [];
+
+        List<Map<String, dynamic>> parseUsers(List<dynamic> users) {
+          return users
+              .map<Map<String, dynamic>>((user) => {
+                    "name": user["name"],
+                    "image": user["image"],
+                    "flag": user["flag"],
+                    "com_pre_id": user["com_pre_id"],
+                    "user_id": user["user_id"],
+                    "total_score": user["total_score"],
+                    "rank": user["rank"],
+                  })
+              .toList();
+        }
+
+        return {
+          "top3": parseUsers(top3),
+          "others": parseUsers(others),
+        };
+      } else {
+        print('Failed to fetch leaderboard: ${response.statusCode}');
+        return {"top3": [], "others": []};
+      }
+    } catch (e) {
+      print('Error fetching leaderboard: $e');
+      return {"top3": [], "others": []};
+    }
+  }
+
+//pre leaderboard
+  static Future<Map<String, List<Map<String, dynamic>>>> fetchPreLeaderboard(
+      String time) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    if (token == null) {
+      print("Token is null");
+      return {"top3": [], "others": []};
+    }
+
+    final url = Uri.parse(
+      "$baseUrl/player/com_pre/leaderboard?time=$time",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        List top3 = data['top3'] ?? [];
+        List others = data['others'] ?? [];
+
+        List<Map<String, dynamic>> parseUsers(List<dynamic> users) {
+          return users
+              .map<Map<String, dynamic>>((user) => {
+                    "name": user["name"],
+                    "image": user["image"],
+                    "flag": user["flag"],
+                    "com_pre_id": user["com_pre_id"],
+                    "user_id": user["user_id"],
+                    "total_score": user["total_score"],
+                    "rank": user["rank"],
+                  })
+              .toList();
+        }
+
+        return {
+          "top3": parseUsers(top3),
+          "others": parseUsers(others),
+        };
+      } else {
+        print('Failed to fetch leaderboard: ${response.statusCode}');
+        return {"top3": [], "others": []};
+      }
+    } catch (e) {
+      print('Error fetching leaderboard: $e');
+      return {"top3": [], "others": []};
+    }
+  }
+//community player in edit
+  static Future<List<Map<String, dynamic>>> fetchCommunityplayerInEdit(
+      String communityId) async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString("user_token");
+
+    final url = Uri.parse(
+      "https://calmletics-production.up.railway.app/api/coach/community-members-status?community_id=$communityId",
+    );
+
+    final headers = {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    };
+
+    try {
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        List players = data['players'] ?? [];
+
+        return players
+            .map<Map<String, dynamic>>((player) => {
+                  "player_id": player["player_id"],
+                  "player_name": player["player_name"],
+                  "community_name": player["community_name"],
+                  "status_message": player["status_message"],
+                  "status_image": player["status_image"],
+                  "image": player["image"],
+                })
+            .toList();
+      } else {
+        print('Failed to fetch players: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching players: $e');
+      return [];
+    }
+  }
+  Future<bool> joinPreCommunity(String code) async {
+    String? token = await TokenHelper.getToken();
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/player/pre-join'),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "code": code, // Assuming the backend expects a JSON body with "code"
+        }),
+      );
+
+      print("📡 Sending POST request to join pre-community...");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print("❌ Error sending join pre-community request: $e");
+      return false;
+    }
+  }
+
 }

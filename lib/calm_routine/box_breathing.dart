@@ -218,7 +218,7 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
 
                     // Breathing Box
                     Container(
-                      height: 500,
+                      height: 400,
                       margin: const EdgeInsets.symmetric(horizontal: 24),
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -251,6 +251,7 @@ class _BoxBreathingScreenState extends State<BoxBreathingScreen>
                                         const Text("4s",
                                             style:
                                                 TextStyle(color: Colors.white)),
+                                                const SizedBox(height: 30,)
                                       ],
                                     ))
                                 .toList(),

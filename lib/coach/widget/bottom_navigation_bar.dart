@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sports_mind/constant.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int selectedIndex;
@@ -14,7 +13,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      color: bgcolor,
+      
+      color: Colors.white,
       shape: const CircularNotchedRectangle(),
       notchMargin: 6.0,
       child: Padding(

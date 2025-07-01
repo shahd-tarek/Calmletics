@@ -87,7 +87,7 @@ class _PlanDayTaskState extends State<PlanDayTask>
                     children: [
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          padding: const EdgeInsets.all(24),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,17 +122,17 @@ class _PlanDayTaskState extends State<PlanDayTask>
                         ),
                       ),
                       ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topRight: Radius.circular(16),
-                          bottomRight: Radius.circular(16),
-                        ),
-                        child: Image.asset(
-                          'assets/images/img-week1.png',
-                          width: 100,
-                          height: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                                borderRadius: const BorderRadius.only(
+                                  topRight: Radius.circular(16),
+                                  bottomRight: Radius.circular(16),
+                                ),
+                               child: Image.asset(
+                                  'assets/images/freepik--background-complete--inject-64 1.png',
+                                  width: 200,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                     ],
                   ),
                 ),

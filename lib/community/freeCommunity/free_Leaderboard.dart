@@ -1,30 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/http/api.dart';
+import 'package:sports_mind/widgets/leaderboard_item.dart';
 import 'package:sports_mind/widgets/leaderboard_tab_bar.dart';
 import 'package:sports_mind/widgets/top_three.dart';
-import 'package:sports_mind/widgets/leaderboard_item.dart';
-import 'package:sports_mind/http/api.dart';
 
-class CoachLeaderboard extends StatefulWidget {
-  final String communityId;
-
-  const CoachLeaderboard({super.key, required this.communityId});
+class FreeLeaderboard extends StatefulWidget {
+  const FreeLeaderboard({super.key});
 
   @override
-  State<CoachLeaderboard> createState() => _CoachLeaderboardState();
+  State<FreeLeaderboard> createState() => _FreeLeaderboardState();
 }
 
-class _CoachLeaderboardState extends State<CoachLeaderboard> {
+class _FreeLeaderboardState extends State<FreeLeaderboard> {
   String selectedTab = 'Daily';
 
-  List<Map<String, dynamic>> topThreeInCoach = [];
+  List<Map<String, dynamic>> topThreeFree = [];
   List<Map<String, dynamic>> otherUsers = [];
   bool isLoading = true;
 
-  Future<void> fetchLeaderboardData(String time) async {
-    final data = await Api.fetchCoachLeaderboard(widget.communityId, time);
+  Future<void> fetchFreeLeaderboardData(String time) async {
+    final data = await Api.fetchFreeLeaderboard(time);
 
     setState(() {
-      topThreeInCoach = data['top3'] ?? [];
+      topThreeFree = data['top3'] ?? [];
       otherUsers = data['others'] ?? [];
       isLoading = false;
     });
@@ -35,13 +33,13 @@ class _CoachLeaderboardState extends State<CoachLeaderboard> {
       selectedTab = tab;
       isLoading = true;
     });
-    fetchLeaderboardData(tab.toLowerCase());
+    fetchFreeLeaderboardData(tab.toLowerCase());
   }
 
   @override
   void initState() {
     super.initState();
-    fetchLeaderboardData("weekly");
+    fetchFreeLeaderboardData("weekly");
   }
 
   @override
@@ -67,8 +65,8 @@ class _CoachLeaderboardState extends State<CoachLeaderboard> {
                   onTabSelected: onTabSelected,
                 ),
                 const SizedBox(height: 20),
-                topThreeInCoach.isNotEmpty
-                    ? TopThree(topUsers: topThreeInCoach)
+                topThreeFree.isNotEmpty
+                    ? TopThree(topUsers: topThreeFree)
                     : const Center(child: Text("No top users available")),
               ],
             ),

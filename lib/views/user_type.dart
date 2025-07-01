@@ -20,7 +20,7 @@ class _UserTypeState extends State<UserType> {
       body: Center(
         child: Column(
           children: [
-            const SizedBox(height: 80),
+            const SizedBox(height:100 ),
             const Text(
               "I am a",
               style: TextStyle(

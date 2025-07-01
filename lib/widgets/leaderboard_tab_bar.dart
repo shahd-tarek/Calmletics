@@ -22,9 +22,9 @@ class LeaderboardTabBar extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: Color.fromRGBO(0, 0, 0, 0.2),
-            spreadRadius: 4,
-            blurRadius: 10,
-            offset: Offset(0, 4),
+            spreadRadius: 0,
+            blurRadius: 5,
+            offset: Offset(0, 0),
           ),
         ],
       ),
@@ -33,9 +33,9 @@ class LeaderboardTabBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildTabButton('Today'),
+            _buildTabButton('Daily'),
             _buildTabButton('Weekly'),
-            _buildTabButton('All time'),
+            _buildTabButton('All'),
           ],
         ),
       ),

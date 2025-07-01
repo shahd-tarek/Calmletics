@@ -138,8 +138,7 @@ class PlanPage extends StatelessWidget {
                               // Left side: title + icon
                               Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
+                                  padding: const EdgeInsets.all(24),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment:
@@ -185,9 +184,9 @@ class PlanPage extends StatelessWidget {
                                   topRight: Radius.circular(16),
                                   bottomRight: Radius.circular(16),
                                 ),
-                                child: Image.asset(
-                                  'assets/images/img-week1.png',
-                                  width: 100,
+                               child: Image.asset(
+                                  'assets/images/freepik--background-complete--inject-64 1.png',
+                                  width: 200,
                                   height: double.infinity,
                                   fit: BoxFit.cover,
                                 ),

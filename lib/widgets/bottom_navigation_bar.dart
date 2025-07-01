@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sports_mind/constant.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int selectedIndex;
@@ -23,7 +24,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
             _buildNavItem(Icons.home, "Home", 0),
             const SizedBox(width: 10),
             _buildNavItem(Icons.vrpano, "Session", 1),
-            const SizedBox(width: 40), // Space for the FAB
+            const SizedBox(width: 40), 
             _buildNavItem(Icons.bar_chart, "Progress", 2),
             _buildNavItem(Icons.people, "Community", 3),
           ],
@@ -42,7 +43,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
           Icon(icon,
               size: 28,
               color: isSelected
-                  ? const Color.fromRGBO(106, 149, 122, 1)
+                  ? kPrimaryColor
                   : const Color.fromRGBO(200, 200, 200, 1)),
           const SizedBox(height: 4),
           Text(
@@ -51,7 +52,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
               fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               color: isSelected
-                  ? const Color.fromRGBO(106, 149, 122, 1)
+                  ? kPrimaryColor
                   : const Color.fromRGBO(200, 200, 200, 1),
             ),
           ),

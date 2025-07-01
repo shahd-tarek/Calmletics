@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sports_mind/coach/screens/coach_home.dart';
 import 'package:sports_mind/coach/screens/coach_leaderboard.dart';
 import 'package:sports_mind/coach/screens/community_players.dart';
+import 'package:sports_mind/coach/screens/edit_community.dart';
 import 'package:sports_mind/coach/widgetsOfHome/player_progress_card.dart';
 import 'package:sports_mind/coach/widgetsOfHome/stats_card.dart';
 import 'package:sports_mind/http/api.dart';
@@ -23,8 +24,9 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
   String? communityLevel;
   int? playersCount;
   List<Map<String, dynamic>> sessions = [];
-  List<Map<String, dynamic>> topPlayers = [];
   List<Map<String, dynamic>> players = [];
+  List<Map<String, dynamic>> topPlayers = [];
+  bool isTopPlayersLoading = true;
   final String baseUrl = 'https://calmletics-production.up.railway.app';
 
   bool isLoading = true;
@@ -37,11 +39,21 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
   void initState() {
     super.initState();
     fetchCommunityData();
+    fetchTopPlayers();
+  }
+
+  Future<void> fetchTopPlayers() async {
+    setState(() => isTopPlayersLoading = true);
+    final players = await Api.fetchTopplayer(widget.communityId);
+    print('Fetched top players: $players');
+    setState(() {
+      topPlayers = players;
+      isTopPlayersLoading = false;
+    });
   }
 
   Future<void> fetchCommunityData() async {
     final data = await Api.comDetails(widget.communityId);
-    final topPlayersData = await Api.fetchTopplayer(widget.communityId);
     final fetchedComPlayers =
         await Api.fetchCommunityplayer(widget.communityId);
 
@@ -52,7 +64,6 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
         playersCount = data['players_count'] ?? 0;
         communityLevel = data['community_level'];
         sessions = List<Map<String, dynamic>>.from(data['sessions'] ?? []);
-        topPlayers = topPlayersData;
         players = fetchedComPlayers;
         isLoading = false;
       });
@@ -87,19 +98,15 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CoachHome()),
-        ),
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           Theme(
             data: Theme.of(context).copyWith(
               popupMenuTheme: PopupMenuThemeData(
-                color: const Color.fromRGBO(
-                    255, 255, 255, 1), 
+                color: const Color.fromRGBO(255, 255, 255, 1),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10), 
+                  borderRadius: BorderRadius.circular(10),
                 ),
               ),
             ),
@@ -107,7 +114,14 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
               icon: const Icon(Icons.list, color: Colors.black),
               onSelected: (String value) {
                 if (value == 'edit') {
-                  // Handle edit community
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditCommunity(
+                        communityId: widget.communityId,
+                      ),
+                    ),
+                  );
                 } else if (value == 'delete') {
                   delateCommunityDialog(context);
                 }
@@ -122,8 +136,7 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
                       style: TextStyle(
                           color: Color.fromRGBO(78, 78, 78, 1), fontSize: 16),
                     ),
-                    tileColor: const Color.fromRGBO(
-                        255, 255, 255, 1), 
+                    tileColor: const Color.fromRGBO(255, 255, 255, 1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -139,8 +152,7 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
                       style: TextStyle(
                           color: Color.fromRGBO(218, 43, 82, 1), fontSize: 16),
                     ),
-                    tileColor: const Color.fromRGBO(
-                        255, 255, 255, 1), 
+                    tileColor: const Color.fromRGBO(255, 255, 255, 1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -278,20 +290,40 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
                   _buildSectionHeader("Top player", "Leader board"),
                   const SizedBox(height: 10),
                   Column(
-                    children: topPlayers.map((player) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: LeaderboardItem(
-                          rank: player['rank'] ?? 0,
-                          name: player['name'] ?? 'Unknown',
-                          points: player['total_score'] ?? 0,
-                          imagePath:
-                              player['image'] ?? 'assets/images/avatar5.png',
-                        ),
-                      );
-                    }).toList(),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // عرض التوب بلايرز
+                      isTopPlayersLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : topPlayers.isEmpty
+                              ? const Center(child: Text('No top players found'))
+                              : Column(
+                                  children:
+                                      topPlayers.asMap().entries.map((entry) {
+                                    int index = entry.key;
+                                    Map<String, dynamic> player = entry.value;
+
+                                    return Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 8.0),
+                                      child: LeaderboardItem(
+                                        rank: player['rank'] ?? index + 1,
+                                        name: player['name'] ?? 'Unknown',
+                                        points: player['total_score'] ?? 0,
+                                        imagePath: player['image'] != null &&
+                                                player['image']!.isNotEmpty
+                                            ? (player['image']!
+                                                    .startsWith('assets/')
+                                                ? player['image']
+                                                : '$baseUrl${player['image']}')
+                                            : 'assets/images/avatar5.png',
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       const Text('Player Progress',
@@ -317,7 +349,7 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 8),
                   Column(
                     children: [
                       if (players.isEmpty)
@@ -535,7 +567,6 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
                     const SizedBox(height: 50),
                     Row(
                       children: [
-                      
                         SizedBox(
                           width: 145,
                           height: 52,
@@ -565,7 +596,6 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        
                         SizedBox(
                           width: 145,
                           height: 52,
@@ -579,8 +609,7 @@ class _CommunityPopCodeState extends State<CommunityPopCode> {
                                           widget.communityId);
 
                                       if (result['success'] == true) {
-                                        Navigator.pop(
-                                            context); 
+                                        Navigator.pop(context);
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(

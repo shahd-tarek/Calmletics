@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     buildCard(
                       context: context,
-                      title: 'Anxiety',
+                      title: 'Test Anxiety',
                       description: 'Feeling anxious? Take this test to see how you’re doing!',
                       image: 'assets/images/card1.png',
                       navigateTo: const SurveyScoreScreen(),
@@ -137,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.grey, width: 1.0),
+                                  border: Border.all( color: const Color(0xffDADADA), width: 1.0),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 decoration: BoxDecoration(
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: Colors.grey, width: 1.0),
+                                  border: Border.all(color: const Color(0xffDADADA), width: 1.0),
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
