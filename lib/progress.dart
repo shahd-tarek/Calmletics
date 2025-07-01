@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:sports_mind/constant.dart';
+import 'package:sports_mind/helper/token_helper.dart';
+import 'package:sports_mind/http/api.dart';
+import 'package:sports_mind/models/progress_data.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class ProgressPage extends StatefulWidget {
@@ -11,6 +16,9 @@ class ProgressPage extends StatefulWidget {
 
 class _ProgressPageState extends State<ProgressPage>
     with SingleTickerProviderStateMixin {
+  final Api api = Api();
+  late Future<ProgressData> progressFuture;
+
   List<Map<String, dynamic>> weekEmotions = [
     {"day": "Mon", "date": "17", "emotion": "assets/images/very_anxious.png"},
     {"day": "Tue", "date": "18", "emotion": "assets/images/anxious.png"},
@@ -28,12 +36,31 @@ class _ProgressPageState extends State<ProgressPage>
     _animationController =
         AnimationController(vsync: this, duration: const Duration(seconds: 1));
     _animationController.forward();
+    progressFuture = fetchProgress();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  Future<ProgressData> fetchProgress() async {
+    String? token = await TokenHelper.getToken();
+    final url = Uri.parse(
+        'https://calmletics-production.up.railway.app/api/player/get-progress');
+
+    final response = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return ProgressData.fromJson(data);
+    } else {
+      throw Exception('Failed to load progress');
+    }
   }
 
   @override
@@ -141,144 +168,208 @@ class _ProgressPageState extends State<ProgressPage>
               },
             ),
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  height: 150,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            height: 70, // تم تقليل الحجم
-                            width: 70,
-                            child: CircularProgressIndicator(
-                              value: 0.6,
-                              strokeWidth: 4, // أنحف قليلاً
-                              backgroundColor: Colors.grey.shade200,
-                              color: kPrimaryColor,
-                            ),
-                          ),
-                          const Text(
-                            "60%\nCompleted",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                fontSize: 12), // حجم النص مناسب لحجم الدائرة
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        "8/28 Days Completed",
-                        style: TextStyle(
-                            fontSize: 12), // اختياري: ضبط حجم النص السفلي أيضًا
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Container(
-                  height: 150,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Session 2",
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                            Text("A Quiet Start"),
-                          ],
-                        ),
-                      ),
-                      Image.asset("assets/images/Sad Face 1.png", height: 40),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
-          Container(
-            padding: const EdgeInsets.all(16),
+    const SizedBox(height: 20),
+FutureBuilder<ProgressData>(
+  future: progressFuture,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+      return Center(child: Text("Error: ${snapshot.error}"));
+    } else if (!snapshot.hasData) {
+      return const Center(child: Text("No data available"));
+    }
+
+    final progress = snapshot.data!;
+    final double completionRate = progress.planPercentage;
+
+    return Row(
+      children: [
+        // ====== Left card: Circular Progress ======
+        Expanded(
+          child: Container(
+            height: 150,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Tasks",
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                const Text("Your task completion progress"),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: 0.4,
-                  backgroundColor: Colors.grey.shade200,
-                  color: kPrimaryColor,
-                  minHeight: 6,
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      height: 70,
+                      width: 70,
+                      child: CircularProgressIndicator(
+                        value: completionRate,
+                        strokeWidth: 4,
+                        backgroundColor: Colors.grey.shade200,
+                        color: kPrimaryColor,
+                      ),
+                    ),
+                    Text(
+                      "${(completionRate * 100).toInt()}%\nCompleted",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                const Text("985 completed     215 remaining"),
+                const SizedBox(height: 6),
+                const Text(
+                  "8/28 Days Completed", // ثابتة زي ما طلبتي
+                  style: TextStyle(fontSize: 12),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(24),
+        ),
+
+        const SizedBox(width: 10),
+
+        // ====== Right card: Session Info ======
+        Expanded(
+          child: Container(
+            height: 150,
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: kPrimaryColor,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Center(
-              child: Text.rich(
-                TextSpan(
-                  text: "Rank\n",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                  children: [
-                    TextSpan(
-                      text: "44/50",
-                      style:
-                          TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                    )
-                  ],
+              border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.4),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
-                textAlign: TextAlign.center,
-              ),
+              ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Session ${progress.sessionNumber}',
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(progress.sessionName),
+                    ],
+                  ),
+                ),
+                Image.asset("assets/images/Sad Face 1.png", height: 90),
+              ],
             ),
           ),
+        ),
+      ],
+    );
+  },
+),
+const SizedBox(height: 30),
+
+// ====== Task Progress Card ======
+FutureBuilder<ProgressData>(
+  future: progressFuture,
+  builder: (context, snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (snapshot.hasError) {
+      return Center(child: Text("Error: ${snapshot.error}"));
+    } else if (!snapshot.hasData) {
+      return const Center(child: Text("No data available"));
+    }
+
+    final progress = snapshot.data!;
+    return Center(
+      child: Container(
+        width: 370,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.4),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Tasks",
+                style:
+                    TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            const Text("Your task completion progress"),
+            const SizedBox(height: 10),
+            LinearProgressIndicator(
+              value: progress.taskPercentage,
+              color: kPrimaryColor,
+              backgroundColor: Colors.grey.shade200,
+              minHeight: 6,
+            ),
+            const SizedBox(height: 6),
+            const Text("985 completed     215 remaining"),
+          ],
+        ),
+      ),
+    );
+  },
+),
+
+          const SizedBox(height: 20),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              height: 200,
+              width: 360,
+              decoration: BoxDecoration(
+                color: kPrimaryColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Center(
+                child: Text.rich(
+                  TextSpan(
+                    text: "Rank\n",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 25,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: "44/50",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          )
         ]),
       ),
     );
