@@ -131,11 +131,17 @@ class _TaskTabState extends State<TaskTab> {
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            widget.practical ?? '',
-                            style: const TextStyle(
-                                color: Colors.black54, fontSize: 13),
-                          ),
+                          ...(widget.practical ?? '')
+                              .replaceAll('\\n', '\n')
+                              .replaceAll('\n\n', '\n')
+                              .split('\n')
+                              .map((line) => Text(
+                                    line.trim(),
+                                    style: const TextStyle(
+                                      color: Colors.black54,
+                                      fontSize: 13,
+                                    ),
+                                  )),
                           const Row(
                             children: [
                               Icon(Icons.repeat_rounded, color: kPrimaryColor),
@@ -251,7 +257,8 @@ class _TaskTabState extends State<TaskTab> {
                             if (notesController.text.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                    content: Text('Please write a your feeling')),
+                                    content:
+                                        Text('Please write a your feeling')),
                               );
                               return;
                             }

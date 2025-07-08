@@ -76,7 +76,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
               borderRadius: BorderRadius.circular(10),
               child: Image.asset(
                 'assets/images/audio.png',
-                height: 380,
+                height: 350,
                 fit: BoxFit.cover,
               ),
             ),

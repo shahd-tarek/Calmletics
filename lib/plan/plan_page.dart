@@ -124,7 +124,7 @@ class PlanPage extends StatelessWidget {
                           );
                         },
                         child: Container(
-                          height: 120,
+                          height: 130,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(32),
@@ -138,7 +138,7 @@ class PlanPage extends StatelessWidget {
                               // Left side: title + icon
                               Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.all(24),
+                                padding: const EdgeInsets.only(top: 24,left: 24,right: 24,bottom: 10),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     crossAxisAlignment:
@@ -171,7 +171,7 @@ class PlanPage extends StatelessWidget {
                                         session.sessionName,
                                         style: const TextStyle(
                                           fontSize: 18,
-                                       
+                                       color: textcolor
                                         ),
                                       ),
                                     ],
@@ -186,7 +186,7 @@ class PlanPage extends StatelessWidget {
                                 ),
                                child: Image.asset(
                                   'assets/images/freepik--background-complete--inject-64 1.png',
-                                  width: 200,
+                                  width: 150,
                                   height: double.infinity,
                                   fit: BoxFit.cover,
                                 ),

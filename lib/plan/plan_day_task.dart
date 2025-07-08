@@ -76,7 +76,7 @@ class _PlanDayTaskState extends State<PlanDayTask>
             children: [
               Center(
                 child: Container(
-                  height: 120,
+                  height: 130,
                   width: 380,
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -87,7 +87,7 @@ class _PlanDayTaskState extends State<PlanDayTask>
                     children: [
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.only(top: 24,left: 24,right: 24,bottom: 10),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +116,7 @@ class _PlanDayTaskState extends State<PlanDayTask>
                               ),
                               const SizedBox(height: 8),
                               Text(widget.sessionName,
-                                  style: const TextStyle(fontSize: 18)),
+                                  style: const TextStyle(fontSize: 18, color: textcolor)),
                             ],
                           ),
                         ),
@@ -128,7 +128,7 @@ class _PlanDayTaskState extends State<PlanDayTask>
                                 ),
                                child: Image.asset(
                                   'assets/images/freepik--background-complete--inject-64 1.png',
-                                  width: 200,
+                                  width: 150,
                                   height: double.infinity,
                                   fit: BoxFit.cover,
                                 ),
@@ -204,11 +204,11 @@ class _SessionTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            height: 200,
+            height: 350,
             child: VideoPlayerWidget(url: content),
           ),
           if (sessionType == 1) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 80),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -260,10 +260,10 @@ class _SessionTab extends StatelessWidget {
     } else if (contentType == 'mp3') {
       // صوت
       contentWidget = SizedBox(
-        height: 50,
+        height: 700,
         child: AudioPlayerWidget(url: content),
       );
-    } else if (contentType == 'txt') {
+    } else if (contentType.toLowerCase().contains('txt')) {
       // PDF
       contentWidget = TextViewerWidget(url: content);
     } else {

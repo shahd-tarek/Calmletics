@@ -48,8 +48,8 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     final position = _controller.value.position;
 
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
+      body: 
+         Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AspectRatio(
@@ -96,7 +96,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
             ),
           ],
         ),
-      ),
+      
     );
   }
 
