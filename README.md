@@ -1,4 +1,4 @@
-# sports_mind
+# Calmletics
 
 A new Flutter project.
 
