@@ -149,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 8),
                                     Text(
                                       'Session ${progress.sessionNumber}: ${progress.sessionName}',
-                                      style: const TextStyle(color: Colors.black),
+                                      style: const TextStyle(color: Colors.black,fontSize: 12,),
                                     ),
                                     const SizedBox(height: 16),
                                     LinearProgressIndicator(

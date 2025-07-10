@@ -27,7 +27,6 @@ class _ChatPageState extends State<ChatPage> {
     fetchUserData();
   }
 
- 
   Future<void> fetchUserData() async {
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("user_token");
@@ -58,7 +57,6 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
- 
   Future<void> fetchMessages() async {
     final prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("user_token");
@@ -67,7 +65,7 @@ class _ChatPageState extends State<ChatPage> {
       Uri.parse(
           'https://calmletics-production.up.railway.app/api/player/community/messages'),
       headers: {
-        "Authorization": "Bearer $token", 
+        "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
     );
@@ -142,6 +140,12 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       backgroundColor: bgcolor,
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+           Navigator.pop(context);
+          },
+        ),
         title:
             const Text("Support Squad", style: TextStyle(color: Colors.white)),
         backgroundColor: kPrimaryColor,
